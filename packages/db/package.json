@@ -14,8 +14,9 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "prisma": { "seed": "tsx prisma/seed.ts", "schema": "prisma/schema.prisma" },
-  "dependencies": { "@prisma/client": "^6.19.3" },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
+  },
   "devDependencies": {
     "@shop/config": "workspace:*",
     "@types/node": "^22.0.0",
