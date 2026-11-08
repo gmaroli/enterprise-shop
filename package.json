@@ -2,7 +2,9 @@
   "name": "enterprise-shop",
   "private": true,
   "packageManager": "pnpm@12.18.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -14,7 +16,12 @@
     "db:down": "docker compose -f infra/docker-compose.yml down",
     "db:migrate": "pnpm --filter @shop/db migrate",
     "db:seed": "pnpm --filter @shop/db seed",
-    "db:reset": "pnpm --filter @shop/db reset"
+    "db:reset": "pnpm --filter @shop/db reset",
+    "db:seed:demo": "pnpm --filter @shop/db seed:demo",
+    "warehouse:init": "pnpm --filter @shop/etl warehouse:init",
+    "warehouse:run": "pnpm --filter @shop/etl warehouse:run",
+    "warehouse:full": "pnpm --filter @shop/etl warehouse:full",
+    "warehouse:status": "pnpm --filter @shop/etl warehouse:status"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

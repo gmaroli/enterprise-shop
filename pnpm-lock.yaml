@@ -303,6 +303,9 @@ importers:
       '@shop/config':
         specifier: workspace:*
         version: link:../config
+      '@shop/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.5

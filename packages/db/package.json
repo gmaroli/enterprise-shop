@@ -12,7 +12,8 @@
     "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
     "reset": "dotenv -e ../../.env -- prisma migrate reset --force",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "seed:demo": "dotenv -e ../../.env -- tsx prisma/seed-demo.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3"
@@ -24,6 +25,7 @@
     "dotenv-cli": "^8.0.0",
     "prisma": "^6.19.3",
     "tsx": "^4.23.15",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "@shop/shared": "workspace:*"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "name": "@shop/etl",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "warehouse:init": "uv run python -m etl init",
+    "warehouse:run": "uv run python -m etl run",
+    "warehouse:full": "uv run python -m etl run --full",
+    "warehouse:status": "uv run python -m etl status",
+    "lint": "uv run ruff check ."
+  }
+}

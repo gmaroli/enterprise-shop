@@ -9,11 +9,12 @@ A demo e-commerce system (storefront, admin, REST API, Postgres, Stripe test-mod
 | Database package (Prisma, migrations, seed) | `packages/db` | Postgres on 5432 |
 | Shared logic (pricing, zod schemas, permissions) | `packages/shared` | |
 | Shared TS config | `packages/config` | |
+| Analytics warehouse loader (Python) | `apps/etl` | database `warehouse` on 5432 |
 | Infrastructure (Docker Compose) | `infra/` | |
 | Documentation | `docs/` | |
 
 ## Prerequisites
-Node 22+, pnpm 12, Docker Desktop.
+Node 22+, pnpm 12, Docker Desktop, and `uv` (Python tooling, for `apps/etl`).
 
 ## Run it locally
 ```bash
@@ -43,9 +44,10 @@ Seeded accounts:
 Never use live keys with this project.
 
 ## Scripts
-`pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (unit tests), `pnpm db:up`, `pnpm db:down`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm db:reset`.
+`pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (unit tests), `pnpm db:up`, `pnpm db:down`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm db:seed:demo` (demo order history), `pnpm db:reset`, `pnpm warehouse:init | warehouse:run | warehouse:full | warehouse:status`.
 
 ## More
 - [docs/requirements.md](docs/requirements.md): features and business rules
 - [docs/architecture.md](docs/architecture.md): how the pieces fit together
 - [docs/api.md](docs/api.md): endpoint overview (full detail in Swagger)
+- [docs/warehouse.md](docs/warehouse.md): data warehouse model, rules and how to run the ETL
