@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation';
-import { formatCents } from '@shop/shared';
 import { addToCartAction } from '@/app/actions';
 import { ProductImage } from '@/components/ProductCard';
 import { Button, ErrorBanner } from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
+import { formatMoney } from '@/lib/money';
+import { getRegion } from '@/lib/region';
 import type { Product } from '@/lib/types';
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> };
@@ -12,9 +13,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const { id } = await params;
   const { error } = await searchParams;
 
+  const region = await getRegion();
   let product: Product;
   try {
-    product = await api<Product>(`/products/${id}`);
+    product = await api<Product>(`/products/${id}?currency=${region.currency}`);
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
@@ -28,7 +30,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <span className="text-xs uppercase tracking-wide text-slate-500">{product.category}</span>
         <h1 className="mt-1 text-2xl font-bold">{product.name}</h1>
         <p className="mt-1 text-sm text-slate-500">SKU {product.sku}</p>
-        <p className="mt-4 text-3xl font-bold">{formatCents(product.priceCents)}</p>
+        <p className="mt-4 text-3xl font-bold">{formatMoney(product.displayPriceCents ?? product.priceCents, product.displayCurrency ?? 'USD')}</p>
         <p className="mt-4 text-slate-700">{product.description}</p>
         <p className={`mt-4 text-sm font-semibold ${soldOut ? 'text-red-600' : 'text-green-700'}`}>
           {soldOut ? 'Out of stock' : `${product.stock} in stock`}

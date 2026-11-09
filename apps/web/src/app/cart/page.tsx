@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { formatCents } from '@shop/shared';
 import { checkoutAction, removeFromCartAction, updateCartAction } from '@/app/actions';
 import { Button, ErrorBanner, Field } from '@/components/ui';
 import { api } from '@/lib/api';
+import { formatMoney } from '@/lib/money';
+import { getRegion } from '@/lib/region';
 import { requireUser } from '@/lib/session';
 import type { Cart } from '@/lib/types';
 
@@ -11,7 +12,11 @@ type SearchParams = Promise<{ coupon?: string; error?: string }>;
 export default async function CartPage({ searchParams }: { searchParams: SearchParams }) {
   const { coupon = '', error } = await searchParams;
   const { token, user } = await requireUser();
-  const cart = await api<Cart>(`/cart${coupon ? `?coupon=${encodeURIComponent(coupon)}` : ''}`, { token });
+  const region = await getRegion();
+  const query = new URLSearchParams({ currency: region.currency });
+  if (coupon) query.set('coupon', coupon);
+  const cart = await api<Cart>(`/cart?${query}`, { token });
+  const fmt = (cents: number) => formatMoney(cents, cart.currency);
   const { totals } = cart;
   const blocked = cart.items.some((i) => !i.available);
 
@@ -38,7 +43,7 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
                 <div>
                   <p className="font-semibold">{item.name}</p>
                   <p className="text-sm text-slate-500">
-                    {formatCents(item.unitPriceCents)} each · SKU {item.sku}
+                    {fmt(item.unitPriceCents)} each · SKU {item.sku}
                   </p>
                   {!item.available && (
                     <p className="text-sm font-semibold text-red-600">
@@ -69,7 +74,7 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
                       Remove
                     </Button>
                   </form>
-                  <span className="w-24 text-right font-semibold">{formatCents(item.lineTotalCents)}</span>
+                  <span className="w-24 text-right font-semibold">{fmt(item.lineTotalCents)}</span>
                 </div>
               </li>
             ))}
@@ -96,16 +101,19 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
         <aside className="h-fit rounded-lg border border-slate-200 bg-white p-5">
           <h2 className="mb-3 font-semibold">Order summary</h2>
           <dl className="space-y-2 text-sm">
-            <Row label="Subtotal" value={formatCents(totals.subtotalCents)} />
-            {totals.discountCents > 0 && <Row label="Discount" value={`-${formatCents(totals.discountCents)}`} />}
-            <Row label="Shipping" value={totals.shippingCents === 0 ? 'Free' : formatCents(totals.shippingCents)} />
-            <Row label="Tax (8%)" value={formatCents(totals.taxCents)} />
+            <Row label="Subtotal" value={fmt(totals.subtotalCents)} />
+            {totals.discountCents > 0 && <Row label="Discount" value={`-${fmt(totals.discountCents)}`} />}
+            <Row label="Shipping" value={totals.shippingCents === 0 ? 'Free' : fmt(totals.shippingCents)} />
+            <Row label="Tax (8%)" value={fmt(totals.taxCents)} />
             <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold">
               <dt>Total</dt>
-              <dd>{formatCents(totals.totalCents)}</dd>
+              <dd>{fmt(totals.totalCents)}</dd>
             </div>
           </dl>
-          <p className="mt-2 text-xs text-slate-500">Free shipping on orders of $100 or more.</p>
+          <p className="mt-2 text-xs text-slate-500">
+            Free shipping on orders of {fmt(cart.shippingRules.freeShippingThresholdCents)} or more. Prices are shown
+            and charged in {cart.currency}.
+          </p>
 
           <form action={checkoutAction} className="mt-5 space-y-3">
             <h3 className="font-semibold">Shipping address</h3>
@@ -114,7 +122,7 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
             <Field label="Address" name="line1" />
             <Field label="City" name="city" />
             <Field label="Postal code" name="postalCode" />
-            <Field label="Country (2-letter code)" name="country" defaultValue="US" />
+            <Field label="Country (2-letter code)" name="country" defaultValue={region.country} />
             <Button type="submit" disabled={blocked} className="w-full">
               Pay with Stripe
             </Button>

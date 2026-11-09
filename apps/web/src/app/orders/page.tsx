@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { formatCents } from '@shop/shared';
 import { StatusBadge } from '@/components/ui';
 import { api } from '@/lib/api';
+import { formatMoney } from '@/lib/money';
 import { requireUser } from '@/lib/session';
 import type { Order } from '@/lib/types';
 
@@ -26,7 +26,7 @@ export default async function OrdersPage() {
               </div>
               <div className="flex items-center gap-4">
                 <StatusBadge status={o.status} />
-                <span className="font-semibold">{formatCents(o.totalCents)}</span>
+                <span className="font-semibold">{formatMoney(o.totalCents, o.currency)}</span>
               </div>
             </li>
           ))}

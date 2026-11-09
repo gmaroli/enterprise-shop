@@ -6,6 +6,8 @@ import type { NextConfig } from 'next';
 loadEnvConfig(path.resolve(__dirname, '../..'));
 
 const nextConfig: NextConfig = {
+  // A separate output folder lets a check build run next to `next dev` without clobbering it.
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
   eslint: { ignoreDuringBuilds: true },
 };
 

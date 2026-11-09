@@ -16,7 +16,7 @@ pnpm workspaces + Turborepo, TypeScript. `apps/web` Next.js 15 (App Router, serv
 `pnpm dev | build | lint | typecheck | test`, `pnpm db:up | db:migrate | db:seed | db:reset`. Web is on port 3001 (3000 is used by Open WebUI on this machine), API on 4000.
 
 ## Conventions
-- Money is integer cents everywhere. Pricing rules live in `packages/shared/src/pricing.ts` only.
+- Money is integer cents everywhere. Product prices are stored in USD; other currencies are derived with `ExchangeRate` (units per 1 USD). Pricing rules live in `packages/shared/src/pricing.ts` and conversion helpers in `packages/shared/src/currency.ts` only.
 - Validate input with the zod schemas in `packages/shared`; the API uses `ZodValidationPipe`.
 - The web app talks to the API only from the server (`apps/web/src/lib/api.ts`); the JWT is kept in an httpOnly cookie.
 - Secrets live in `.env` (never committed); `.env.example` lists the variable names.

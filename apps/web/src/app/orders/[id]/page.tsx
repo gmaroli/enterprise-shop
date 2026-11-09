@@ -1,7 +1,7 @@
-import { formatCents } from '@shop/shared';
 import { syncOrderAction } from '@/app/actions';
 import { Button, ErrorBanner, StatusBadge } from '@/components/ui';
 import { api } from '@/lib/api';
+import { formatMoney } from '@/lib/money';
 import { requireUser } from '@/lib/session';
 import type { Order } from '@/lib/types';
 
@@ -16,6 +16,7 @@ export default async function OrderPage({
   const { error } = await searchParams;
   const { token } = await requireUser();
   const order = await api<Order>(`/orders/${id}`, { token });
+  const fmt = (cents: number) => formatMoney(cents, order.currency);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -37,6 +38,11 @@ export default async function OrderPage({
       )}
       <p className="text-sm text-slate-500">Placed {new Date(order.createdAt).toLocaleString()}</p>
       {order.paidAt && <p className="text-sm text-slate-500">Paid {new Date(order.paidAt).toLocaleString()}</p>}
+      {order.currency.toLowerCase() !== 'usd' && (
+        <p className="text-sm text-slate-500">
+          Charged in {order.currency.toUpperCase()} (1 USD = {Number(order.fxRate)} {order.currency.toUpperCase()} at the time of purchase)
+        </p>
+      )}
 
       <ul className="mt-6 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
         {order.items.map((i) => (
@@ -44,21 +50,21 @@ export default async function OrderPage({
             <span>
               {i.name} × {i.quantity}
             </span>
-            <span>{formatCents(i.unitPriceCents * i.quantity)}</span>
+            <span>{fmt(i.unitPriceCents * i.quantity)}</span>
           </li>
         ))}
       </ul>
 
       <dl className="mt-4 space-y-1 text-sm">
-        <Line label="Subtotal" value={formatCents(order.subtotalCents)} />
+        <Line label="Subtotal" value={fmt(order.subtotalCents)} />
         {order.discountCents > 0 && (
-          <Line label={`Discount (${order.couponCode})`} value={`-${formatCents(order.discountCents)}`} />
+          <Line label={`Discount (${order.couponCode})`} value={`-${fmt(order.discountCents)}`} />
         )}
-        <Line label="Shipping" value={formatCents(order.shippingCents)} />
-        <Line label="Tax" value={formatCents(order.taxCents)} />
+        <Line label="Shipping" value={fmt(order.shippingCents)} />
+        <Line label="Tax" value={fmt(order.taxCents)} />
         <div className="flex justify-between border-t border-slate-200 pt-2 font-bold">
           <dt>Total</dt>
-          <dd>{formatCents(order.totalCents)}</dd>
+          <dd>{fmt(order.totalCents)}</dd>
         </div>
       </dl>
 

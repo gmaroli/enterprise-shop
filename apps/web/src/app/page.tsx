@@ -1,13 +1,15 @@
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { ProductCard } from '@/components/ProductCard';
+import { getRegion } from '@/lib/region';
 import type { ProductPage } from '@/lib/types';
 
 type SearchParams = Promise<{ q?: string; category?: string; page?: string }>;
 
 export default async function CatalogPage({ searchParams }: { searchParams: SearchParams }) {
   const { q = '', category = '', page = '1' } = await searchParams;
-  const qs = new URLSearchParams({ page, pageSize: '12' });
+  const region = await getRegion();
+  const qs = new URLSearchParams({ page, pageSize: '12', currency: region.currency });
   if (q) qs.set('q', q);
   if (category) qs.set('category', category);
 

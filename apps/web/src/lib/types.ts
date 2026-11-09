@@ -12,6 +12,9 @@ export type Product = {
   category: string;
   imageUrl: string | null;
   active: boolean;
+  /** Price in the shopper's currency (present on public product endpoints). */
+  displayPriceCents?: number;
+  displayCurrency?: string;
 };
 
 export type ProductPage = { items: Product[]; total: number; page: number; pageSize: number };
@@ -36,7 +39,12 @@ export type CartItem = {
   available: boolean;
 };
 
-export type Cart = { items: CartItem[]; totals: CartTotals };
+export type Cart = {
+  currency: string;
+  shippingRules: { flatShippingCents: number; freeShippingThresholdCents: number };
+  items: CartItem[];
+  totals: CartTotals;
+};
 
 export type OrderItem = {
   id: string;
@@ -55,6 +63,8 @@ export type Order = {
   taxCents: number;
   totalCents: number;
   couponCode: string | null;
+  currency: string;
+  fxRate: string;
   shippingName: string;
   shippingLine1: string;
   shippingCity: string;
@@ -64,3 +74,5 @@ export type Order = {
   paidAt: string | null;
   items: OrderItem[];
 };
+
+export type ExchangeRate = { currency: string; perUsd: number; source: string; updatedAt: string };

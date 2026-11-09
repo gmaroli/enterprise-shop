@@ -23,7 +23,14 @@ Business rules and user stories for Enterprise Shop. Acceptance criteria describ
 - US-7 I can change an item's quantity or remove it; setting the quantity to 0 removes it. The cart persists across sessions.
 - US-8 I see line totals, subtotal, discount, shipping, tax and total.
 
+## Region and currency
+- US-16 The shop detects the visitor's country from their IP address (a bundled country database; no external calls) and pre-fills it as the shipping country at checkout. A country chosen in the header selector overrides detection ("Auto" returns to detection). On a private or loopback address (such as localhost) the configured dev address `GEO_DEV_IP` stands in; with none set the default country is used.
+- US-17 Prices are shown and charged in the currency of the shopper's country: USD (US and any country the shop does not price in), AUD (AU), GBP (GB), CAD (CA) and EUR (DE, FR, ES, IT, NL, IE, AT, BE, PT, FI).
+- US-18 Product prices are stored in USD. A shown price is the USD price multiplied by the exchange rate (units of the currency per 1 USD) and rounded to the nearest cent. Admins can edit the demo rates; USD is fixed at 1. Changing a rate affects new views and new orders only: an order keeps the rate it was charged at.
+- US-19 Orders, the Stripe Checkout session and receipts use the shopper's currency. The order stores its currency and exchange rate.
+
 ## Pricing rules (money is in cents)
+All rule amounts below are USD. In another currency, the shipping fee and the free-shipping threshold are converted with the same rate and rounded, line prices are converted per unit, and the percentage rules (coupon, tax) apply to the converted amounts.
 - Subtotal: sum of unit price x quantity.
 - Coupons (case-insensitive, trimmed): `WELCOME10` gives 10% off the subtotal (rounded to the nearest cent); `FREESHIP` removes shipping. Unknown codes are ignored. One coupon per order.
 - Shipping: US$7.50 flat; free when the subtotal (before discount) is US$100.00 or more; free for an empty cart.
@@ -31,7 +38,7 @@ Business rules and user stories for Enterprise Shop. Acceptance criteria describ
 - Total: discounted subtotal + shipping + tax.
 
 ## Checkout and orders
-- US-9 As a customer I can check out with a shipping address (name, address, city, postal code, 2-letter country). My cart must not be empty and every item must be in stock.
+- US-9 As a customer I can check out with a shipping address (name, address, city, postal code, 2-letter country; the country is pre-filled from the shopper's region). My cart must not be empty and every item must be in stock.
 - US-10 Payment happens on Stripe's hosted page (test mode). An order is created as `PENDING` before I am redirected.
 - US-11 When Stripe confirms payment, the order becomes `PAID`, stock is reduced by the quantities bought, and my cart is emptied.
   - Payment counts only when Stripe reports the session as paid and the amount and currency match the order; otherwise the order stays `PENDING` and the mismatch is logged.
@@ -45,4 +52,4 @@ Business rules and user stories for Enterprise Shop. Acceptance criteria describ
 - US-15 Admins can view all orders.
 
 ## Non-goals
-Refunds, returns, multi-currency, inventory reservation during checkout, email notifications, and password reset.
+Refunds, returns, live exchange rates, currencies beyond the five above, inventory reservation during checkout, email notifications, and password reset.

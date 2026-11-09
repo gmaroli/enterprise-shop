@@ -33,6 +33,9 @@ Seeded accounts:
 | Admin | admin@shop.test | Admin123! |
 | Customer | customer@shop.test | Customer123! |
 
+## Country and currency
+The storefront detects the visitor's country from their IP using a bundled database (no account, no network calls) and shows prices in that country's currency (USD, AUD, GBP, CAD, EUR). On localhost there is no public address, so set `GEO_DEV_IP` in `.env` (for example `1.1.1.1` = Australia, `8.8.8.8` = United States, `81.2.69.142` = United Kingdom). The header selector overrides detection. Admins edit the demo exchange rates at `/admin/rates`.
+
 ## Stripe (test mode only)
 1. Create a free Stripe account and open the **test mode** dashboard.
 2. Copy the test secret key (`sk_test_...`) into `STRIPE_SECRET_KEY` in `.env`.

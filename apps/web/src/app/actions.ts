@@ -1,15 +1,18 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import {
   checkoutSchema,
+  isSupportedCountry,
   loginSchema,
   productInputSchema,
   registerSchema,
 } from '@shop/shared';
 import { api, ApiError, errorMessage } from '@/lib/api';
 import { dollarsToCents } from '@/lib/money';
+import { COUNTRY_COOKIE, getRegion } from '@/lib/region';
 import { clearToken, getToken, requireAdmin, requireUser, setToken } from '@/lib/session';
 
 function text(form: FormData, key: string): string {
@@ -115,6 +118,7 @@ export async function checkoutAction(form: FormData) {
       country: text(form, 'country'),
     },
     couponCode: coupon || undefined,
+    currency: (await getRegion()).currency,
   });
   if (!parsed.success) {
     fail(back, parsed.error.issues.map((i) => `${i.path.slice(-1)[0]}: ${i.message}`).join('; '));
@@ -185,4 +189,28 @@ export async function syncOrderAction(form: FormData) {
   }
   revalidatePath('/', 'layout');
   redirect(`/orders/${id}`);
+}
+
+export async function setCountryAction(form: FormData) {
+  const country = text(form, 'country').toUpperCase();
+  const jar = await cookies();
+  if (isSupportedCountry(country)) {
+    jar.set(COUNTRY_COOKIE, country, { sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 365 });
+  } else {
+    jar.delete(COUNTRY_COOKIE); // "Auto" goes back to IP detection
+  }
+  revalidatePath('/', 'layout');
+}
+
+export async function saveRateAction(form: FormData) {
+  const { token } = await requireAdmin();
+  const currency = text(form, 'currency');
+  const perUsd = Number(text(form, 'perUsd'));
+  try {
+    await api(`/admin/rates/${currency}`, { method: 'PUT', token, body: { perUsd } });
+  } catch (error) {
+    fail('/admin/rates', errorMessage(error));
+  }
+  revalidatePath('/admin/rates');
+  redirect('/admin/rates');
 }

@@ -9,7 +9,7 @@ export class ApiError extends Error {
   }
 }
 
-type Options = { method?: string; body?: unknown; token?: string | null };
+type Options = { method?: string; body?: unknown; token?: string | null; headers?: Record<string, string> };
 
 function messageFrom(data: unknown, fallback: string): string {
   if (data && typeof data === 'object') {
@@ -30,6 +30,7 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
     headers: {
       ...(options.body ? { 'content-type': 'application/json' } : {}),
       ...(options.token ? { authorization: `Bearer ${options.token}` } : {}),
+      ...options.headers,
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
     cache: 'no-store',

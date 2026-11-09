@@ -19,6 +19,9 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Products</h1>
         <div className="flex gap-3">
+          <Link href="/admin/rates" className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold">
+            Exchange rates
+          </Link>
           <Link href="/admin/orders" className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold">
             All orders
           </Link>
@@ -47,7 +50,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
             <th className="px-4 py-2">SKU</th>
             <th className="px-4 py-2">Name</th>
             <th className="px-4 py-2">Category</th>
-            <th className="px-4 py-2">Price</th>
+            <th className="px-4 py-2">Price (USD)</th>
             <th className="px-4 py-2">Stock</th>
             <th className="px-4 py-2">Status</th>
             <th className="px-4 py-2" />

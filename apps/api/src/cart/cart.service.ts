@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { calculateTotals, convertFromUsd, type Currency } from '@shop/shared';
+import { calculateTotals, convertFromUsd, shippingRules, type Currency } from '@shop/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { RatesService } from '../rates/rates.module';
 
@@ -35,6 +35,7 @@ export class CartService {
 
     return {
       currency,
+      shippingRules: shippingRules(rate),
       items: lines.map(({ item: i, unitPriceCents }) => ({
         productId: i.productId,
         sku: i.product.sku,

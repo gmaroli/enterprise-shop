@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { formatCents } from '@shop/shared';
 import { StatusBadge } from '@/components/ui';
 import { api } from '@/lib/api';
+import { formatMoney } from '@/lib/money';
 import { requireUser } from '@/lib/session';
 import type { Order } from '@/lib/types';
 
@@ -31,7 +31,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
           We are confirming your payment. Refresh this page in a moment.
         </p>
       )}
-      <p className="mt-4 text-lg font-bold">{formatCents(order.totalCents)}</p>
+      <p className="mt-4 text-lg font-bold">{formatMoney(order.totalCents, order.currency)}</p>
       <div className="mt-6 flex justify-center gap-4 text-sm">
         <Link href={`/orders/${order.id}`} className="text-indigo-700 underline">
           View order

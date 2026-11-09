@@ -1,12 +1,15 @@
 import Link from 'next/link';
-import { logoutAction } from '@/app/actions';
+import { COUNTRY_NAMES, SUPPORTED_COUNTRIES } from '@shop/shared';
+import { logoutAction, setCountryAction } from '@/app/actions';
 import { api } from '@/lib/api';
+import { getRegion } from '@/lib/region';
 import { getToken, getUser } from '@/lib/session';
 import type { Cart } from '@/lib/types';
 import { Button } from './ui';
 
 export async function Header() {
   const user = await getUser();
+  const region = await getRegion();
   let cartCount = 0;
   if (user) {
     const token = await getToken();
@@ -21,6 +24,30 @@ export async function Header() {
           Enterprise Shop
         </Link>
         <nav className="flex items-center gap-5 text-sm font-medium text-slate-700">
+          <form action={setCountryAction} className="flex items-center gap-1.5 text-xs">
+            <label htmlFor="region-country" className="sr-only">
+              Country
+            </label>
+            <select
+              id="region-country"
+              name="country"
+              defaultValue={region.source === 'selected' ? region.country : ''}
+              className="rounded-md border border-slate-300 bg-white px-1.5 py-1"
+            >
+              <option value="">
+                Auto ({region.country})
+              </option>
+              {SUPPORTED_COUNTRIES.map((c) => (
+                <option key={c} value={c}>
+                  {COUNTRY_NAMES[c]}
+                </option>
+              ))}
+            </select>
+            <span className="font-semibold text-slate-600" title="Prices are shown and charged in this currency">
+              {region.currency}
+            </span>
+            <button className="rounded-md border border-slate-300 px-2 py-1 font-semibold hover:bg-slate-100">Set</button>
+          </form>
           <Link href="/">Shop</Link>
           {user && <Link href="/cart">Cart{cartCount > 0 ? ` (${cartCount})` : ''}</Link>}
           {user && <Link href="/orders">Orders</Link>}

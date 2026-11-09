@@ -1,6 +1,6 @@
 # API overview
 
-Base URL `http://localhost:4000/api`. Interactive docs: `/api/docs` (JSON at `/api/docs-json`). Protected endpoints take `Authorization: Bearer <token>`; get a token from `POST /auth/login`.
+Base URL `http://localhost:4000/api`. Interactive docs: `/api/docs` (JSON at `/api/docs-json`). Product and cart endpoints accept `currency` (`USD`, `AUD`, `GBP`, `CAD`, `EUR`; default `USD`) and return prices in it; checkout takes `currency` in the body. Protected endpoints take `Authorization: Bearer <token>`; get a token from `POST /auth/login`.
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
@@ -10,6 +10,9 @@ Base URL `http://localhost:4000/api`. Interactive docs: `/api/docs` (JSON at `/a
 | GET | /auth/me | user | Current user |
 | GET | /products | none | Search/list (`q`, `category`, `page`, `pageSize`) |
 | GET | /products/categories | none | Category names |
+| GET | /geo | none | Country and currency detected from the client IP (`x-client-ip` header, or the connection) |
+| GET | /rates | none | Exchange rates (units per 1 USD) |
+| PUT | /admin/rates/:currency | admin | Set a rate (not USD) |
 | GET | /products/:id | none | One active product |
 | GET/POST | /admin/products | admin | List all / create |
 | GET/PUT/DELETE | /admin/products/:id | admin | Read / update / deactivate |
