@@ -1,16 +1,20 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { calculateTotals } from '@shop/shared';
+import { calculateTotals, convertFromUsd, type Currency } from '@shop/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { RatesService } from '../rates/rates.module';
 
 @Injectable()
 export class CartService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rates: RatesService,
+  ) {}
 
   private async ensureCart(userId: string) {
     return this.prisma.cart.upsert({ where: { userId }, update: {}, create: { userId } });
   }
 
-  async get(userId: string, couponCode?: string) {
+  async get(userId: string, couponCode?: string, currency: Currency = 'USD') {
     const cart = await this.ensureCart(userId);
     const items = await this.prisma.cartItem.findMany({
       where: { cartId: cart.id },
@@ -18,19 +22,26 @@ export class CartService {
       orderBy: { product: { name: 'asc' } },
     });
 
+    const rate = await this.rates.rateFor(currency);
+    const lines = items.map((i) => ({
+      item: i,
+      unitPriceCents: convertFromUsd(i.product.priceCents, rate),
+    }));
     const totals = calculateTotals(
-      items.map((i) => ({ unitPriceCents: i.product.priceCents, quantity: i.quantity })),
+      lines.map((l) => ({ unitPriceCents: l.unitPriceCents, quantity: l.item.quantity })),
       couponCode,
+      { ratePerUsd: rate },
     );
 
     return {
-      items: items.map((i) => ({
+      currency,
+      items: lines.map(({ item: i, unitPriceCents }) => ({
         productId: i.productId,
         sku: i.product.sku,
         name: i.product.name,
-        unitPriceCents: i.product.priceCents,
+        unitPriceCents,
         quantity: i.quantity,
-        lineTotalCents: i.product.priceCents * i.quantity,
+        lineTotalCents: unitPriceCents * i.quantity,
         stock: i.product.stock,
         available: i.product.active && i.product.stock >= i.quantity,
       })),
@@ -38,7 +49,7 @@ export class CartService {
     };
   }
 
-  async addItem(userId: string, productId: string, quantity: number) {
+  async addItem(userId: string, productId: string, quantity: number, currency: Currency = 'USD') {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product || !product.active) throw new NotFoundException('Product not found');
 
@@ -56,10 +67,10 @@ export class CartService {
       update: { quantity: newQuantity },
       create: { cartId: cart.id, productId, quantity },
     });
-    return this.get(userId);
+    return this.get(userId, undefined, currency);
   }
 
-  async setQuantity(userId: string, productId: string, quantity: number) {
+  async setQuantity(userId: string, productId: string, quantity: number, currency: Currency = 'USD') {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product || !product.active) throw new NotFoundException('Product not found');
     if (quantity > product.stock) throw new BadRequestException(`Only ${product.stock} in stock`);
@@ -71,18 +82,18 @@ export class CartService {
     if (!existing) throw new NotFoundException('Item is not in the cart');
 
     await this.prisma.cartItem.update({ where: { id: existing.id }, data: { quantity } });
-    return this.get(userId);
+    return this.get(userId, undefined, currency);
   }
 
-  async removeItem(userId: string, productId: string) {
+  async removeItem(userId: string, productId: string, currency: Currency = 'USD') {
     const cart = await this.ensureCart(userId);
     await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id, productId } });
-    return this.get(userId);
+    return this.get(userId, undefined, currency);
   }
 
-  async clear(userId: string) {
+  async clear(userId: string, currency: Currency = 'USD') {
     const cart = await this.ensureCart(userId);
     await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
-    return this.get(userId);
+    return this.get(userId, undefined, currency);
   }
 }

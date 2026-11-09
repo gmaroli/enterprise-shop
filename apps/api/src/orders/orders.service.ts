@@ -7,14 +7,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { calculateTotals, canViewOrder, type CheckoutInput } from '@shop/shared';
+import { calculateTotals, canViewOrder, convertFromUsd, type CheckoutInput } from '@shop/shared';
 import type Stripe from 'stripe';
+import type { Prisma } from '@shop/db';
 import { PrismaService } from '../prisma/prisma.service';
 import type { AuthUser } from '../common/auth';
 import { outcomeForSession } from '../payments/stripe-events';
 import { StripeService } from '../payments/stripe.service';
+import { RatesService } from '../rates/rates.module';
 
 const orderInclude = { items: true } as const;
+
+export type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
 
 @Injectable()
 export class OrdersService {
@@ -24,6 +28,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly stripeService: StripeService,
     private readonly config: ConfigService,
+    private readonly rates: RatesService,
   ) {}
 
   async checkout(user: AuthUser, input: CheckoutInput) {
@@ -43,15 +48,26 @@ export class OrdersService {
       );
     }
 
+    // Prices are stored in USD; the order is priced and charged in the shopper's currency.
+    const currency = input.currency;
+    const rate = await this.rates.rateFor(currency);
+    const lines = cart.items.map((i) => ({
+      item: i,
+      unitPriceCents: convertFromUsd(i.product.priceCents, rate),
+    }));
     const totals = calculateTotals(
-      cart.items.map((i) => ({ unitPriceCents: i.product.priceCents, quantity: i.quantity })),
+      lines.map((l) => ({ unitPriceCents: l.unitPriceCents, quantity: l.item.quantity })),
       input.couponCode,
+      { ratePerUsd: rate },
     );
     const address = input.shippingAddress;
+    const stripeCurrency = currency.toLowerCase();
 
     const order = await this.prisma.order.create({
       data: {
         userId: user.id,
+        currency: stripeCurrency,
+        fxRate: rate,
         subtotalCents: totals.subtotalCents,
         discountCents: totals.discountCents,
         shippingCents: totals.shippingCents,
@@ -64,11 +80,11 @@ export class OrdersService {
         shippingPostalCode: address.postalCode,
         shippingCountry: address.country,
         items: {
-          create: cart.items.map((i) => ({
+          create: lines.map(({ item: i, unitPriceCents }) => ({
             productId: i.productId,
             sku: i.product.sku,
             name: i.product.name,
-            unitPriceCents: i.product.priceCents,
+            unitPriceCents,
             quantity: i.quantity,
           })),
         },
@@ -76,13 +92,13 @@ export class OrdersService {
       include: orderInclude,
     });
 
-    const webUrl = this.config.get<string>('WEB_URL') ?? 'http://localhost:3000';
+    const webUrl = this.config.get<string>('WEB_URL') ?? 'http://localhost:3001';
 
     try {
       const lineItems = order.items.map((i) => ({
         quantity: i.quantity,
         price_data: {
-          currency: 'usd',
+          currency: stripeCurrency,
           unit_amount: i.unitPriceCents,
           product_data: { name: i.name, metadata: { sku: i.sku } },
         },
@@ -91,7 +107,7 @@ export class OrdersService {
         lineItems.push({
           quantity: 1,
           price_data: {
-            currency: 'usd',
+            currency: stripeCurrency,
             unit_amount: order.taxCents,
             product_data: { name: 'Sales tax (8%)', metadata: { sku: 'TAX' } },
           },
@@ -99,7 +115,7 @@ export class OrdersService {
       }
 
       const discounts = order.discountCents > 0
-        ? [{ coupon: (await stripe.coupons.create({ amount_off: order.discountCents, currency: 'usd', duration: 'once', name: order.couponCode ?? 'Discount' })).id }]
+        ? [{ coupon: (await stripe.coupons.create({ amount_off: order.discountCents, currency: stripeCurrency, duration: 'once', name: order.couponCode ?? 'Discount' })).id }]
         : undefined;
 
       const session = await stripe.checkout.sessions.create({
@@ -110,7 +126,7 @@ export class OrdersService {
           {
             shipping_rate_data: {
               type: 'fixed_amount',
-              fixed_amount: { amount: order.shippingCents, currency: 'usd' },
+              fixed_amount: { amount: order.shippingCents, currency: stripeCurrency },
               display_name: order.shippingCents === 0 ? 'Free shipping' : 'Standard shipping',
             },
           },
@@ -134,7 +150,7 @@ export class OrdersService {
     }
   }
 
-  list(user: AuthUser, all = false) {
+  list(user: AuthUser, all = false): Promise<OrderWithItems[]> {
     return this.prisma.order.findMany({
       where: all && user.role === 'ADMIN' ? {} : { userId: user.id },
       include: orderInclude,
@@ -142,7 +158,7 @@ export class OrdersService {
     });
   }
 
-  async get(user: AuthUser, id: string) {
+  async get(user: AuthUser, id: string): Promise<OrderWithItems> {
     const order = await this.prisma.order.findUnique({ where: { id }, include: orderInclude });
     if (!order) throw new NotFoundException('Order not found');
     if (!canViewOrder(user, order)) throw new ForbiddenException('Not your order');
@@ -153,7 +169,7 @@ export class OrdersService {
    * Asks Stripe for the current state of an order's Checkout Session and applies it.
    * Lets a customer recover a paid order when the webhook was late or never arrived.
    */
-  async syncWithStripe(user: AuthUser, id: string) {
+  async syncWithStripe(user: AuthUser, id: string): Promise<OrderWithItems> {
     const order = await this.get(user, id);
     if (order.status !== 'PENDING' || !order.stripeSessionId) return order;
 

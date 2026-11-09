@@ -13,3 +13,5 @@ __pycache__
 .ruff_cache
 .stripe
 *.tsbuildinfo
+.verify-dist
+.next-verify

@@ -12,8 +12,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+  currencySchema,
   productInputSchema,
   productQuerySchema,
+  type Currency,
   type ProductInput,
   type ProductQuery,
 } from '@shop/shared';
@@ -27,7 +29,7 @@ export class ProductsController {
   constructor(private readonly products: ProductsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Search and list active products (paged)' })
+  @ApiOperation({ summary: 'Search and list active products (paged), priced in the requested currency' })
   list(@Query(new ZodValidationPipe(productQuerySchema)) query: ProductQuery) {
     return this.products.list(query);
   }
@@ -39,9 +41,12 @@ export class ProductsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get one active product' })
-  get(@Param('id') id: string) {
-    return this.products.get(id);
+  @ApiOperation({ summary: 'Get one active product (priced in the requested currency)' })
+  get(
+    @Param('id') id: string,
+    @Query('currency', new ZodValidationPipe(currencySchema.default('USD'))) currency: Currency,
+  ) {
+    return this.products.get(id, currency);
   }
 }
 

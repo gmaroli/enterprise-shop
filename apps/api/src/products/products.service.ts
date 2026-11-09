@@ -1,11 +1,24 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@shop/db';
-import type { ProductInput, ProductQuery } from '@shop/shared';
+import { convertFromUsd, type Currency, type ProductInput, type ProductQuery } from '@shop/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { RatesService } from '../rates/rates.module';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rates: RatesService,
+  ) {}
+
+  /** Adds the price in the shopper's currency; priceCents stays the USD base price. */
+  private withDisplayPrice<T extends { priceCents: number }>(product: T, currency: Currency, rate: number) {
+    return {
+      ...product,
+      displayCurrency: currency,
+      displayPriceCents: convertFromUsd(product.priceCents, rate),
+    };
+  }
 
   async list(query: ProductQuery, includeInactive = false) {
     const where: Prisma.ProductWhereInput = {
@@ -32,7 +45,15 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    return { items, total, page: query.page, pageSize: query.pageSize };
+    if (includeInactive) return { items, total, page: query.page, pageSize: query.pageSize };
+
+    const rate = await this.rates.rateFor(query.currency);
+    return {
+      items: items.map((p) => this.withDisplayPrice(p, query.currency, rate)),
+      total,
+      page: query.page,
+      pageSize: query.pageSize,
+    };
   }
 
   async categories() {
@@ -45,10 +66,10 @@ export class ProductsService {
     return rows.map((r) => r.category);
   }
 
-  async get(id: string) {
+  async get(id: string, currency: Currency = 'USD') {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product || !product.active) throw new NotFoundException('Product not found');
-    return product;
+    return this.withDisplayPrice(product, currency, await this.rates.rateFor(currency));
   }
 
   async getAny(id: string) {
