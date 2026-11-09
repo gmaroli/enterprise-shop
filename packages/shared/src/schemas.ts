@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CURRENCIES } from './currency';
 
 export const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -25,11 +26,16 @@ export const productInputSchema = z.object({
 });
 export type ProductInput = z.infer<typeof productInputSchema>;
 
+export const currencySchema = z.enum(CURRENCIES);
+
+export const currencyQuerySchema = z.object({ currency: currencySchema.default('USD') });
+
 export const productQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
   category: z.string().trim().max(60).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(12),
+  currency: currencySchema.default('USD'),
 });
 export type ProductQuery = z.infer<typeof productQuerySchema>;
 
@@ -51,8 +57,12 @@ export type ShippingAddress = z.infer<typeof shippingAddressSchema>;
 export const checkoutSchema = z.object({
   shippingAddress: shippingAddressSchema,
   couponCode: z.string().trim().max(40).optional(),
+  currency: currencySchema.default('USD'),
 });
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 export const ORDER_STATUSES = ['PENDING', 'PAID', 'FAILED', 'CANCELLED'] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export const exchangeRateSchema = z.object({ perUsd: z.number().positive().max(100_000) });
+export type ExchangeRateInput = z.infer<typeof exchangeRateSchema>;

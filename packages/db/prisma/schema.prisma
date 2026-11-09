@@ -80,6 +80,7 @@ model Order {
   taxCents              Int         @default(0)
   totalCents            Int
   currency              String      @default("usd")
+  fxRate                Decimal     @default(1) @db.Decimal(18, 8)
   couponCode            String?
   shippingName          String
   shippingLine1         String
@@ -107,4 +108,12 @@ model OrderItem {
   name           String
   unitPriceCents Int
   quantity       Int
+}
+
+/// Units of a currency per 1 USD. Product prices are stored in USD and converted with these rates.
+model ExchangeRate {
+  currency  String   @id
+  perUsd    Decimal  @db.Decimal(18, 8)
+  source    String   @default("static")
+  updatedAt DateTime @updatedAt
 }

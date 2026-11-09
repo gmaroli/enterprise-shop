@@ -18,6 +18,6 @@ describe('schemas', () => {
   });
 
   it('applies query defaults', () => {
-    expect(productQuerySchema.parse({})).toEqual({ page: 1, pageSize: 12 });
+    expect(productQuerySchema.parse({})).toEqual({ page: 1, pageSize: 12, currency: 'USD' });
   });
 });

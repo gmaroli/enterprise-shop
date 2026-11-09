@@ -37,6 +37,7 @@ async function main() {
   await prisma.cart.deleteMany();
   await prisma.product.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.exchangeRate.deleteMany();
 
   const [adminHash, customerHash] = await Promise.all([
     bcrypt.hash('Admin123!', 10),
@@ -61,7 +62,17 @@ async function main() {
     })),
   });
 
-  console.log(`Seeded ${products.length} products and 2 users.`);
+  await prisma.exchangeRate.createMany({
+    data: [
+      { currency: 'USD', perUsd: 1 },
+      { currency: 'AUD', perUsd: 1.52 },
+      { currency: 'GBP', perUsd: 0.78 },
+      { currency: 'CAD', perUsd: 1.37 },
+      { currency: 'EUR', perUsd: 0.92 },
+    ],
+  });
+
+  console.log(`Seeded ${products.length} products, 2 users and 5 exchange rates.`);
 }
 
 main()

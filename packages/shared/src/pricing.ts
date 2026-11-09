@@ -1,4 +1,6 @@
-/** All money values are integer cents. */
+import { convertFromUsd } from './currency';
+
+/** All money values are integer cents. Rule amounts below are in USD; other currencies convert them. */
 
 export const TAX_RATE = 0.08;
 export const FREE_SHIPPING_THRESHOLD_CENTS = 10_000;
@@ -23,7 +25,25 @@ export function normalizeCoupon(code: string | undefined | null): CouponCode | n
   return null;
 }
 
-export function calculateTotals(lines: PricedLine[], couponCode?: string | null): CartTotals {
+export type PricingOptions = {
+  /** Units of the order currency per 1 USD. Line prices must already be in that currency. */
+  ratePerUsd?: number;
+};
+
+/** Shipping rules expressed in the order currency. */
+export function shippingRules(ratePerUsd = 1) {
+  return {
+    flatShippingCents: convertFromUsd(FLAT_SHIPPING_CENTS, ratePerUsd),
+    freeShippingThresholdCents: convertFromUsd(FREE_SHIPPING_THRESHOLD_CENTS, ratePerUsd),
+  };
+}
+
+export function calculateTotals(
+  lines: PricedLine[],
+  couponCode?: string | null,
+  options: PricingOptions = {},
+): CartTotals {
+  const rules = shippingRules(options.ratePerUsd);
   const subtotalCents = lines.reduce((sum, l) => sum + l.unitPriceCents * l.quantity, 0);
   const coupon = lines.length > 0 ? normalizeCoupon(couponCode) : null;
 
@@ -31,8 +51,8 @@ export function calculateTotals(lines: PricedLine[], couponCode?: string | null)
   const discountedSubtotal = subtotalCents - discountCents;
 
   let shippingCents = 0;
-  if (lines.length > 0 && coupon !== 'FREESHIP' && subtotalCents < FREE_SHIPPING_THRESHOLD_CENTS) {
-    shippingCents = FLAT_SHIPPING_CENTS;
+  if (lines.length > 0 && coupon !== 'FREESHIP' && subtotalCents < rules.freeShippingThresholdCents) {
+    shippingCents = rules.flatShippingCents;
   }
 
   const taxCents = Math.round(discountedSubtotal * TAX_RATE);
