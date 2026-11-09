@@ -1,4 +1,5 @@
 import {
+  BadGatewayException,
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -6,9 +7,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { calculateTotals, canViewOrder, type CheckoutInput, type OrderStatus } from '@shop/shared';
+import { calculateTotals, canViewOrder, type CheckoutInput } from '@shop/shared';
+import type Stripe from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
 import type { AuthUser } from '../common/auth';
+import { outcomeForSession } from '../payments/stripe-events';
 import { StripeService } from '../payments/stripe.service';
 
 const orderInclude = { items: true } as const;
@@ -146,35 +149,78 @@ export class OrdersService {
     return order;
   }
 
-  /** Applies a status change coming from a Stripe webhook. Idempotent. */
-  async applyStripeStatus(orderId: string, status: OrderStatus, paymentIntentId?: string | null) {
+  /**
+   * Asks Stripe for the current state of an order's Checkout Session and applies it.
+   * Lets a customer recover a paid order when the webhook was late or never arrived.
+   */
+  async syncWithStripe(user: AuthUser, id: string) {
+    const order = await this.get(user, id);
+    if (order.status !== 'PENDING' || !order.stripeSessionId) return order;
+
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await this.stripeService.stripe.checkout.sessions.retrieve(order.stripeSessionId);
+    } catch (error) {
+      this.logger.error(`Could not retrieve Stripe session for order ${order.id}: ${String(error)}`);
+      throw new BadGatewayException('Could not check the payment with Stripe. Try again shortly.');
+    }
+    await this.applyStripeSession(order.id, session);
+    return this.get(user, id);
+  }
+
+  /**
+   * Applies what Stripe says about a Checkout Session to our order. Safe to call
+   * repeatedly and concurrently (webhook retries, duplicate events, success-page sync).
+   */
+  async applyStripeSession(orderId: string, session: Stripe.Checkout.Session, eventType?: string) {
     const order = await this.prisma.order.findUnique({ where: { id: orderId }, include: orderInclude });
     if (!order) {
-      this.logger.warn(`Webhook for unknown order ${orderId}`);
+      this.logger.warn(`Stripe session ${session.id} refers to unknown order ${orderId}`);
       return;
     }
 
-    if (status === 'PAID') {
-      if (order.status === 'PAID') return;
-      await this.prisma.$transaction(async (tx) => {
-        await tx.order.update({
-          where: { id: order.id },
-          data: { status: 'PAID', paidAt: new Date(), stripePaymentIntentId: paymentIntentId ?? null },
+    const outcome = outcomeForSession(session, order, eventType);
+    switch (outcome.kind) {
+      case 'PAID':
+        await this.markPaid(order, this.paymentIntentId(session));
+        break;
+      case 'FAILED':
+      case 'CANCELLED':
+        await this.prisma.order.updateMany({
+          where: { id: order.id, status: 'PENDING' },
+          data: { status: outcome.kind },
         });
-        for (const item of order.items) {
-          const result = await tx.product.updateMany({
-            where: { id: item.productId, stock: { gte: item.quantity } },
-            data: { stock: { decrement: item.quantity } },
-          });
-          if (result.count === 0) this.logger.warn(`Oversold ${item.sku} on order ${order.id}`);
-        }
-        await tx.cartItem.deleteMany({ where: { cart: { userId: order.userId } } });
-      });
-      return;
+        break;
+      case 'MISMATCH':
+        this.logger.error(`Order ${order.id} not marked paid: ${outcome.reason}`);
+        break;
+      case 'WAIT':
+        break;
     }
+  }
 
-    if (order.status === 'PENDING') {
-      await this.prisma.order.update({ where: { id: order.id }, data: { status } });
-    }
+  private paymentIntentId(session: Stripe.Checkout.Session): string | null {
+    const intent = session.payment_intent;
+    return typeof intent === 'string' ? intent : (intent?.id ?? null);
+  }
+
+  private async markPaid(order: { id: string; userId: string; items: { productId: string; sku: string; quantity: number }[] }, paymentIntentId: string | null) {
+    await this.prisma.$transaction(async (tx) => {
+      // Claim the order; if a concurrent call already marked it paid, do nothing.
+      const claimed = await tx.order.updateMany({
+        where: { id: order.id, status: { not: 'PAID' } },
+        data: { status: 'PAID', paidAt: new Date(), stripePaymentIntentId: paymentIntentId },
+      });
+      if (claimed.count === 0) return;
+
+      for (const item of order.items) {
+        const result = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
+          data: { stock: { decrement: item.quantity } },
+        });
+        if (result.count === 0) this.logger.warn(`Oversold ${item.sku} on order ${order.id}`);
+      }
+      await tx.cartItem.deleteMany({ where: { cart: { userId: order.userId } } });
+    });
   }
 }

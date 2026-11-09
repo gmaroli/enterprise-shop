@@ -13,7 +13,7 @@ import type { Request } from 'express';
 import type Stripe from 'stripe';
 import { OrdersModule } from '../orders/orders.module';
 import { OrdersService } from '../orders/orders.service';
-import { statusForStripeEvent } from './stripe-events';
+import { isHandledEvent } from './stripe-events';
 import { StripeModule } from './stripe.module';
 import { StripeService } from './stripe.service';
 
@@ -40,16 +40,13 @@ class StripeWebhookController {
       throw new BadRequestException('Invalid Stripe signature');
     }
 
-    const status = statusForStripeEvent(event.type);
-    if (!status) return { received: true };
+    if (!isHandledEvent(event.type)) return { received: true };
 
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.orderId ?? session.client_reference_id;
     if (!orderId) return { received: true };
 
-    const paymentIntent =
-      typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
-    await this.orders.applyStripeStatus(orderId, status, paymentIntent);
+    await this.orders.applyStripeSession(orderId, session, event.type);
     return { received: true };
   }
 }

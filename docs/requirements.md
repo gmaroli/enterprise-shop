@@ -33,7 +33,10 @@ Business rules and user stories for Enterprise Shop. Acceptance criteria describ
 ## Checkout and orders
 - US-9 As a customer I can check out with a shipping address (name, address, city, postal code, 2-letter country). My cart must not be empty and every item must be in stock.
 - US-10 Payment happens on Stripe's hosted page (test mode). An order is created as `PENDING` before I am redirected.
-- US-11 When Stripe confirms payment (webhook), the order becomes `PAID`, stock is reduced by the quantities bought, and my cart is emptied. Repeated webhook deliveries must not change anything twice.
+- US-11 When Stripe confirms payment, the order becomes `PAID`, stock is reduced by the quantities bought, and my cart is emptied.
+  - Payment counts only when Stripe reports the session as paid and the amount and currency match the order; otherwise the order stays `PENDING` and the mismatch is logged.
+  - Repeated or simultaneous deliveries of the same confirmation must not change anything twice.
+- US-11a If the confirmation webhook is late or missing, returning to the success page, or using "Check payment status" on a pending order, asks Stripe directly and completes the order the same way.
 - US-12 If the Stripe session expires or an async payment fails, the order becomes `CANCELLED` or `FAILED`.
 - US-13 I can see my orders and any order's details. Only the owner or an admin can view an order.
 

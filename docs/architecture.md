@@ -16,7 +16,8 @@ Stripe ──webhook──> apps/api  /api/webhooks/stripe
 1. Web calls `POST /api/orders/checkout` with the shipping address and optional coupon.
 2. API recomputes totals from the database, creates a `PENDING` order with item snapshots, and creates a Stripe Checkout session (line items, tax line, discount coupon, shipping option).
 3. Web redirects the browser to Stripe. On return it shows `/checkout/success?order=<id>`.
-4. Stripe calls the webhook. `checkout.session.completed` marks the order `PAID`, decrements stock and empties the cart in one transaction.
+4. Stripe calls the webhook. For a paid session whose amount and currency match the order, the order is marked `PAID`, stock is decremented and the cart is emptied in one transaction. The order is claimed with a conditional update, so duplicate or simultaneous deliveries are harmless.
+5. Fallback: if the order is still `PENDING` when the customer lands on the success page (or presses "Check payment status" on the order page), the web app calls `POST /api/orders/:id/sync`. The API fetches the Checkout Session from Stripe and applies the same logic.
 
 ## Environment
 See `.env.example`. One `.env` at the repo root is shared by the API, the web app and Prisma.

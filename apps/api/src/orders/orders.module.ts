@@ -21,6 +21,12 @@ class OrdersController {
     return this.orders.checkout(user, body);
   }
 
+  @Post(':id/sync')
+  @ApiOperation({ summary: 'Re-check a pending order with Stripe and complete it if it was paid' })
+  sync(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.orders.syncWithStripe(user, id);
+  }
+
   @Get()
   @ApiOperation({ summary: 'List my orders (admins can pass all=true)' })
   @ApiQuery({ name: 'all', required: false })

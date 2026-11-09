@@ -174,3 +174,15 @@ export async function deactivateProductAction(form: FormData) {
   revalidatePath('/admin/products');
   redirect('/admin/products');
 }
+
+export async function syncOrderAction(form: FormData) {
+  const { token } = await requireUser();
+  const id = text(form, 'orderId');
+  try {
+    await api(`/orders/${id}/sync`, { method: 'POST', token });
+  } catch (error) {
+    fail(`/orders/${id}`, errorMessage(error));
+  }
+  revalidatePath('/', 'layout');
+  redirect(`/orders/${id}`);
+}

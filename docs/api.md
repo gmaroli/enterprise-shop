@@ -20,4 +20,5 @@ Base URL `http://localhost:4000/api`. Interactive docs: `/api/docs` (JSON at `/a
 | POST | /orders/checkout | user | Create order and Stripe session |
 | GET | /orders | user | My orders (`all=true` for admins) |
 | GET | /orders/:id | owner/admin | Order details |
+| POST | /orders/:id/sync | owner/admin | Re-check a pending order with Stripe and complete it if paid |
 | POST | /webhooks/stripe | Stripe signature | Payment events |

@@ -10,7 +10,15 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
   const { token } = await requireUser();
   if (!orderId) return <p>No order specified.</p>;
 
-  const order = await api<Order>(`/orders/${orderId}`, { token });
+  let order = await api<Order>(`/orders/${orderId}`, { token });
+  if (order.status === 'PENDING') {
+    // The webhook may be late or missing: ask Stripe directly and finish the order if it was paid.
+    try {
+      order = await api<Order>(`/orders/${orderId}/sync`, { method: 'POST', token });
+    } catch {
+      // Keep showing the pending state; the customer can refresh or use "Check payment status".
+    }
+  }
   return (
     <div className="mx-auto max-w-lg rounded-lg border border-slate-200 bg-white p-8 text-center">
       <h1 className="text-2xl font-bold">Thank you for your order</h1>
