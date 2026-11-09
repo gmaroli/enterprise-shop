@@ -18,7 +18,7 @@ pnpm warehouse:status    # recent batches and row counts
 ```
 Optional demo history (about 220 orders over 90 days, 12 extra customers, priced in the shipping country's currency): `pnpm db:seed:demo`. It replaces only its own `demo_` rows and stamps them with the current time so the next incremental load picks them up; run `pnpm warehouse:full` after changing demo data.
 
-Connect with any Postgres client: `postgresql://shop:shop_local_pw@localhost:5432/warehouse`.
+Connect with any Postgres client using the `WAREHOUSE_URL` value from your `.env` (see `.env.example` for the format).
 To run on a schedule, a cron entry such as `*/15 * * * * cd /path/to/enterprise-shop && pnpm warehouse:run` is enough for local use.
 
 ## Schemas

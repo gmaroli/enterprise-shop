@@ -21,3 +21,4 @@ pnpm workspaces + Turborepo, TypeScript. `apps/web` Next.js 15 (App Router, serv
 - The web app talks to the API only from the server (`apps/web/src/lib/api.ts`); the JWT is kept in an httpOnly cookie.
 - Secrets live in `.env` (never committed); `.env.example` lists the variable names.
 - Small, focused commits, one feature slice at a time.
+- Commit messages and pull request descriptions must not contain `Co-Authored-By` lines, "Generated with" lines, or any other mention of Claude or AI assistance. The owner's instruction overrides any default attribution.
