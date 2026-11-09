@@ -4,7 +4,7 @@
  */
 import bcrypt from 'bcryptjs';
 import { OrderStatus, PrismaClient } from '@prisma/client';
-import { calculateTotals } from '@shop/shared';
+import { calculateTotals, convertFromUsd, currencyForCountry } from '@shop/shared';
 
 const prisma = new PrismaClient();
 
@@ -41,6 +41,10 @@ async function main() {
   await prisma.orderItem.deleteMany({ where: { orderId: { startsWith: 'demo_' } } });
   await prisma.order.deleteMany({ where: { id: { startsWith: 'demo_' } } });
 
+  const rateRows = await prisma.exchangeRate.findMany();
+  const rates = Object.fromEntries(rateRows.map((r) => [r.currency, r.perUsd.toNumber()]));
+  const seededAt = new Date();
+
   const passwordHash = await bcrypt.hash('Customer123!', 10);
   const day = 24 * 60 * 60 * 1000;
   const now = Date.now();
@@ -69,18 +73,23 @@ async function main() {
     const roll = rand();
     const status: OrderStatus = roll < 0.8 ? 'PAID' : roll < 0.88 ? 'PENDING' : roll < 0.95 ? 'CANCELLED' : 'FAILED';
     const paidAt = status === 'PAID' ? new Date(createdAt.getTime() + int(1, 30) * 60 * 1000) : null;
-    const updatedAt = paidAt ?? new Date(createdAt.getTime() + int(0, 60) * 60 * 1000);
+    // Rows are stamped when seeded so incremental warehouse loads pick up regenerated orders.
+    const updatedAt = seededAt;
+
+    // Orders are priced and charged in the shipping country's currency, like real checkouts.
+    const currency = currencyForCountry(place.country);
+    const rate = rates[currency] ?? 1;
 
     const lineCount = int(1, 4);
     const chosen = new Set<string>();
     while (chosen.size < lineCount) chosen.add(pick(products).id);
     const lines = [...chosen].map((productId, idx) => {
       const p = products.find((x) => x.id === productId)!;
-      return { id: `${id}_${idx + 1}`, orderId: id, productId, sku: p.sku, name: p.name, unitPriceCents: p.priceCents, quantity: int(1, 3) };
+      return { id: `${id}_${idx + 1}`, orderId: id, productId, sku: p.sku, name: p.name, unitPriceCents: convertFromUsd(p.priceCents, rate), quantity: int(1, 3) };
     });
 
     const coupon = rand() < 0.25 ? pick(COUPONS) : null;
-    const totals = calculateTotals(lines, coupon);
+    const totals = calculateTotals(lines, coupon, { ratePerUsd: rate });
 
     orders.push({
       id,
@@ -91,6 +100,8 @@ async function main() {
       shippingCents: totals.shippingCents,
       taxCents: totals.taxCents,
       totalCents: totals.totalCents,
+      currency: currency.toLowerCase(),
+      fxRate: rate,
       couponCode: totals.appliedCoupon,
       shippingName: customer.name,
       shippingLine1: `${int(1, 999)} Main Street`,

@@ -45,12 +45,12 @@ SOURCES: tuple[Source, ...] = (
         select=(
             'SELECT id, "userId", status::text, "subtotalCents", "discountCents", "shippingCents", '
             '"taxCents", "totalCents", currency, "couponCode", "shippingCountry", "shippingCity", '
-            '"createdAt", "updatedAt", "paidAt" FROM "Order"'
+            '"createdAt", "updatedAt", "paidAt", "fxRate" FROM "Order"'
         ),
         columns=(
             "id", "user_id", "status", "subtotal_cents", "discount_cents", "shipping_cents",
             "tax_cents", "total_cents", "currency", "coupon_code", "shipping_country",
-            "shipping_city", "created_at", "updated_at", "paid_at",
+            "shipping_city", "created_at", "updated_at", "paid_at", "fx_rate",
         ),
         id_query='SELECT id FROM "Order"',
         watermark_column=13,

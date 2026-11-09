@@ -230,3 +230,24 @@ INSERT INTO dw.ref_pricing_rule (rule_name, numeric_value, description) VALUES
   ('free_shipping_threshold_cents', 10000, 'Subtotal (before discount) at or above which shipping is free'),
   ('tax_rate', 0.08, 'Sales tax rate applied to the discounted subtotal')
 ON CONFLICT (rule_name) DO NOTHING;
+
+-- ---------------------------------------------------------------- multi-currency
+-- Orders can be in AUD, GBP, CAD, EUR or USD. Facts keep the order's own currency amounts and
+-- the same amounts in USD (the reporting currency). fx_rate = units of the currency per 1 USD.
+ALTER TABLE staging.stg_order ADD COLUMN IF NOT EXISTS fx_rate numeric(18,8) NOT NULL DEFAULT 1;
+
+ALTER TABLE dw.fact_orders
+  ADD COLUMN IF NOT EXISTS fx_rate                   numeric(18,8) NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS subtotal_usd_cents        integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS discount_usd_cents        integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS shipping_usd_cents        integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tax_usd_cents             integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_usd_cents           integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS shipping_waived_usd_cents integer NOT NULL DEFAULT 0;
+
+ALTER TABLE dw.fact_order_lines
+  ADD COLUMN IF NOT EXISTS line_amount_usd_cents        integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS allocated_discount_usd_cents integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS allocated_shipping_usd_cents integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS allocated_tax_usd_cents      integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS line_total_usd_cents         integer NOT NULL DEFAULT 0;

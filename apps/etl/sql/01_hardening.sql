@@ -72,3 +72,12 @@ CREATE INDEX IF NOT EXISTS fact_order_lines_date_idx     ON dw.fact_order_lines 
 CREATE INDEX IF NOT EXISTS fact_order_lines_paid_idx     ON dw.fact_order_lines (paid_date_key) WHERE status = 'PAID';
 CREATE INDEX IF NOT EXISTS fact_order_lines_customer_idx ON dw.fact_order_lines (customer_key);
 CREATE INDEX IF NOT EXISTS dim_product_sku_idx           ON dw.dim_product (sku);
+
+-- ------------------------------------------------------------ multi-currency
+SELECT etl.add_constraint_if_missing('staging.stg_order', 'stg_order_fx_chk', $$CHECK (fx_rate > 0)$$);
+SELECT etl.add_constraint_if_missing('dw.fact_orders', 'fact_orders_fx_chk', $$CHECK (fx_rate > 0)$$);
+SELECT etl.add_constraint_if_missing('dw.fact_orders', 'fact_orders_usd_amounts_chk',
+  $$CHECK (subtotal_usd_cents >= 0 AND discount_usd_cents >= 0 AND shipping_usd_cents >= 0 AND tax_usd_cents >= 0 AND total_usd_cents >= 0 AND shipping_waived_usd_cents >= 0)$$);
+SELECT etl.add_constraint_if_missing('dw.fact_order_lines', 'fact_order_lines_usd_amounts_chk',
+  $$CHECK (line_amount_usd_cents >= 0 AND allocated_discount_usd_cents >= 0 AND allocated_shipping_usd_cents >= 0 AND allocated_tax_usd_cents >= 0)$$);
+CREATE INDEX IF NOT EXISTS fact_orders_currency_idx ON dw.fact_orders (currency);
