@@ -40,6 +40,14 @@ describe('conversion', () => {
     expect(convertToUsd(13528, 1.52)).toBe(8900);
   });
 
+  it('rounds exact halves up despite floating-point noise', () => {
+    // 750 * 1.13 = 847.5 exactly, but 847.4999999999999 in floating point.
+    expect(convertFromUsd(750, 1.13)).toBe(848);
+    expect(convertFromUsd(750, 0.57)).toBe(428);
+    expect(convertFromUsd(750, 1.15)).toBe(863);
+    expect(convertFromUsd(750, 1.37)).toBe(1028);
+  });
+
   it('is the identity at a rate of 1', () => {
     expect(convertFromUsd(1234, 1)).toBe(1234);
   });

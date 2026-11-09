@@ -50,12 +50,21 @@ export function currencyForCountry(country: string | null | undefined): Currency
   return COUNTRY_CURRENCY[country?.trim().toUpperCase() ?? ''] ?? BASE_CURRENCY;
 }
 
+/**
+ * Rounds to the nearest whole number the way exact decimal arithmetic would. A product such as
+ * 750 * 1.13 is 847.4999999999999 in floating point; trimming to 15 significant digits removes
+ * that noise so exact halves round up as expected.
+ */
+function roundHalfUp(value: number): number {
+  return Math.round(Number(value.toPrecision(15)));
+}
+
 /** Converts USD cents to the currency's cents, rounded to the nearest cent. */
 export function convertFromUsd(usdCents: number, ratePerUsd: number): number {
-  return Math.round(usdCents * ratePerUsd);
+  return roundHalfUp(usdCents * ratePerUsd);
 }
 
 /** Converts a currency's cents back to USD cents, rounded to the nearest cent. */
 export function convertToUsd(cents: number, ratePerUsd: number): number {
-  return Math.round(cents / ratePerUsd);
+  return roundHalfUp(cents / ratePerUsd);
 }
