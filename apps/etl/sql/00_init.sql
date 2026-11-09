@@ -159,12 +159,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS dim_product_one_current_idx
   ON dw.dim_product (product_id) WHERE is_current;
 
 -- "Unknown" members so facts never need a NULL foreign key.
-INSERT INTO dw.dim_customer (customer_key, customer_id, name, email, role)
-VALUES (-1, '-1', 'Unknown', 'unknown', 'UNKNOWN')
+INSERT INTO dw.dim_customer (customer_key, customer_id, name, email, role, created_at, _batch_id)
+VALUES (-1, '-1', 'Unknown', 'unknown', 'UNKNOWN', '1900-01-01 00:00:00+00', 0)
 ON CONFLICT (customer_key) DO NOTHING;
 
-INSERT INTO dw.dim_product (product_key, product_id, sku, name, category, valid_from)
-VALUES (-1, '-1', 'UNKNOWN', 'Unknown', 'Unknown', '1900-01-01 00:00:00+00')
+INSERT INTO dw.dim_product (product_key, product_id, sku, name, category, price_cents, valid_from, _batch_id)
+VALUES (-1, '-1', 'UNKNOWN', 'Unknown', 'Unknown', 0, '1900-01-01 00:00:00+00', 0)
 ON CONFLICT (product_key) DO NOTHING;
 
 -- ---------------------------------------------------------------- facts
@@ -215,3 +215,18 @@ CREATE TABLE IF NOT EXISTS dw.fact_order_lines (
 );
 CREATE INDEX IF NOT EXISTS fact_order_lines_order_idx ON dw.fact_order_lines (order_id);
 CREATE INDEX IF NOT EXISTS fact_order_lines_product_idx ON dw.fact_order_lines (product_key);
+
+-- ---------------------------------------------------------------- later additions
+ALTER TABLE dw.fact_orders ADD COLUMN IF NOT EXISTS shipping_waived_cents integer NOT NULL DEFAULT 0;
+
+-- Business constants the warehouse needs. Keep in step with packages/shared/src/pricing.ts.
+CREATE TABLE IF NOT EXISTS dw.ref_pricing_rule (
+  rule_name     text PRIMARY KEY,
+  numeric_value numeric NOT NULL,
+  description   text NOT NULL
+);
+INSERT INTO dw.ref_pricing_rule (rule_name, numeric_value, description) VALUES
+  ('flat_shipping_cents', 750, 'Flat shipping fee charged below the free-shipping threshold'),
+  ('free_shipping_threshold_cents', 10000, 'Subtotal (before discount) at or above which shipping is free'),
+  ('tax_rate', 0.08, 'Sales tax rate applied to the discounted subtotal')
+ON CONFLICT (rule_name) DO NOTHING;

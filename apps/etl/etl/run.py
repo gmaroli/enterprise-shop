@@ -22,8 +22,8 @@ TARGET_TABLES = (
 def init() -> None:
     ensure_warehouse_database()
     with connect_warehouse() as wh:
-        run_sql_file(wh, "00_init.sql")
-        run_sql_file(wh, "30_reporting_views.sql")
+        for script in ("00_init.sql", "01_hardening.sql", "02_comments.sql", "30_reporting_views.sql"):
+            run_sql_file(wh, script)
     print("Warehouse is ready.")
 
 
@@ -56,6 +56,7 @@ def run(full: bool) -> None:
             params = {"batch_id": batch_id}
             run_sql_file(wh, "10_transform_dims.sql", params)
             run_sql_file(wh, "20_transform_facts.sql", params)
+            run_sql_file(wh, "40_post_load.sql")
             wh.commit()
     except Exception as exc:
         _finish_batch(batch_id, "FAILED", None, str(exc))

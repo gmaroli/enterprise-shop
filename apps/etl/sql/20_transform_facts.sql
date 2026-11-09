@@ -10,7 +10,7 @@ WHERE order_id IN (SELECT id FROM staging.stg_order WHERE _batch_id = %(batch_id
 INSERT INTO dw.fact_orders
   (order_id, date_key, paid_date_key, customer_key, status, coupon_code, shipping_country,
    shipping_city, line_count, units, subtotal_cents, discount_cents, shipping_cents, tax_cents,
-   total_cents, currency, created_at, paid_at, source_updated_at, _batch_id)
+   total_cents, currency, created_at, paid_at, source_updated_at, shipping_waived_cents, _batch_id)
 SELECT
   o.id,
   to_char(o.created_at AT TIME ZONE 'UTC', 'YYYYMMDD')::int,
@@ -25,7 +25,13 @@ SELECT
   (SELECT COALESCE(sum(i.quantity), 0) FROM staging.stg_order_item i
     WHERE i.order_id = o.id AND i._deleted_at IS NULL),
   o.subtotal_cents, o.discount_cents, o.shipping_cents, o.tax_cents, o.total_cents,
-  o.currency, o.created_at, o.paid_at, o.updated_at, %(batch_id)s
+  o.currency, o.created_at, o.paid_at, o.updated_at,
+  -- FREESHIP removes the flat fee that would otherwise apply below the free-shipping threshold.
+  CASE WHEN o.coupon_code = 'FREESHIP' AND o.shipping_cents = 0
+        AND o.subtotal_cents < (SELECT numeric_value FROM dw.ref_pricing_rule WHERE rule_name = 'free_shipping_threshold_cents')
+       THEN (SELECT numeric_value::int FROM dw.ref_pricing_rule WHERE rule_name = 'flat_shipping_cents')
+       ELSE 0 END,
+  %(batch_id)s
 FROM staging.stg_order o
 LEFT JOIN dw.dim_customer c ON c.customer_id = o.user_id
 WHERE o._batch_id = %(batch_id)s AND o._deleted_at IS NULL;

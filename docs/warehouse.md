@@ -27,7 +27,7 @@ To run on a schedule, a cron entry such as `*/15 * * * * cd /path/to/enterprise-
 | `etl` | `batch_log` (one row per run), `watermark` (last source `updatedAt` loaded per table) |
 | `staging` | `stg_user`, `stg_product`, `stg_order`, `stg_order_item`: latest copy of each source row plus `_batch_id`, `_loaded_at`, `_deleted_at` |
 | `dw` | Dimensions `dim_date`, `dim_customer`, `dim_product`; facts `fact_orders`, `fact_order_lines` |
-| `reporting` | Views for sales by day, product, category and month, customers, order status, coupons, ETL runs |
+| `reporting` | Views for sales by day, product, category and month, customers, order status, coupons (including shipping waived), ETL runs, and `v_data_dictionary` |
 
 ## Model
 | Table | Grain | Key notes |
@@ -35,15 +35,18 @@ To run on a schedule, a cron entry such as `*/15 * * * * cd /path/to/enterprise-
 | `dim_date` | one calendar day, 2024-01-01 to 2030-12-31 | `date_key` is `yyyymmdd` |
 | `dim_customer` | one row per customer | Type 1: values are overwritten; `is_deleted` set if removed in the source |
 | `dim_product` | one row per product **version** | Type 2: tracked attributes are sku, name, description, category, price, currency, active (stock is not tracked); `valid_from`, `valid_to`, `is_current` |
-| `fact_orders` | one row per order | all statuses; dates keys for created and paid |
+| `fact_orders` | one row per order | all statuses; date keys for created and paid; `shipping_waived_cents` |
 | `fact_order_lines` | one row per order line | product version valid at order time; order-level amounts allocated to lines |
 
 `customer_key = -1` and `product_key = -1` are "Unknown" members used when a lookup fails.
+
+`dw.ref_pricing_rule` holds the business constants the transforms need (flat shipping fee, free-shipping threshold, tax rate). It must be kept in step with `packages/shared/src/pricing.ts`, because the warehouse does not read the app's code.
 
 ## Business rules
 - **Dates** are UTC calendar dates. Source timestamps are stored in UTC.
 - **Paid** means order status `PAID`. Reporting views count only paid orders, dated by payment date, except `v_order_status_summary` (all statuses) and the per-customer unsuccessful-order count.
 - **Money** stays in integer cents, as in the source.
+- **Shipping waived:** for an order with the `FREESHIP` coupon whose shipping charge is 0 and whose subtotal (before discount) is below the free-shipping threshold, `shipping_waived_cents` is the flat shipping fee. In every other case it is 0, including `FREESHIP` orders that would have had free shipping anyway.
 - **Allocation:** each line gets a share of the order's discount, shipping and tax in proportion to its `line_amount_cents` (quantity x unit price). Shares are rounded down; the leftover cents go to the largest line (ties broken by lowest line id). `line_total_cents = line_amount - discount + shipping + tax`.
 - **Product version lookup:** a line points to the `dim_product` row whose `[valid_from, valid_to)` contains the order's creation time. If none does (for example history loaded after the fact), the earliest version is used.
 - **Change detection:** the extract reads rows with `updatedAt >=` the stored watermark (a row at the boundary may be read again; loads are idempotent). Order lines follow their order.
@@ -51,7 +54,18 @@ To run on a schedule, a cron entry such as `*/15 * * * * cd /path/to/enterprise-
 - **Deletes:** rows that disappear from the source are kept in staging with `_deleted_at`, flagged in dimensions, and removed from the facts.
 - **Atomic batches:** staging, dimensions, facts and watermarks are written in one transaction; a failed batch leaves no partial data and is recorded in `etl.batch_log` with its error.
 
+## Integrity and structure
+`pnpm warehouse:init` is repeatable and applies, in order: tables, constraints and indexes, the data dictionary, and views.
+
+- **Constraints:** NOT NULL on keys and measures; domain checks (status values, roles, currency format, two-letter country, non-negative amounts, positive quantities); foreign keys from facts to dimensions and from order lines to orders (deleting an order removes its lines); a unique "one current version per product" rule; a check that `is_current` agrees with `valid_to`; and an exclusion constraint so a product's versions can never overlap in time.
+- **Not enforced:** rules that reconcile values against each other, such as total = subtotal - discount + shipping + tax, or line allocations adding up to the order. These are left to data testing.
+- **Staging** has domain checks but no foreign keys, because it is a raw copy loaded in table order.
+- **Indexes** support the reporting views: order and line date keys, partial indexes on paid rows, customer and product lookups, and `sku` on the product dimension.
+- **Statistics** are refreshed with `ANALYZE` at the end of every load.
+- **Data dictionary:** every table and column has a description. Query `reporting.v_data_dictionary`, or `\d+` in psql.
+
 ## Known limitations
 - Product history is captured when the job runs. Two changes to a product between runs produce one new version, not two.
 - Delete detection compares complete id lists, which is fine at this size but would need a different approach for very large tables.
 - No late-arriving dimension handling and no scheduler or alerting; runs are started by hand or cron.
+- Schema changes are applied by editing the idempotent SQL files in `apps/etl/sql`, not by versioned migrations. There are no separate database roles; everything uses the `shop` user.

@@ -75,7 +75,8 @@ SELECT
   coupon_code,
   count(*)            AS paid_orders,
   sum(discount_cents) AS discount_cents,
-  sum(subtotal_cents) AS subtotal_cents
+  sum(subtotal_cents) AS subtotal_cents,
+  sum(shipping_waived_cents) AS shipping_waived_cents
 FROM dw.fact_orders
 WHERE status = 'PAID' AND coupon_code IS NOT NULL
 GROUP BY coupon_code;
@@ -86,3 +87,19 @@ SELECT batch_id, mode, status, started_at, finished_at,
        rows_extracted, error
 FROM etl.batch_log
 ORDER BY batch_id DESC;
+
+CREATE OR REPLACE VIEW reporting.v_data_dictionary AS
+SELECT
+  c.table_schema,
+  c.table_name,
+  c.ordinal_position AS position,
+  c.column_name,
+  c.data_type,
+  c.is_nullable = 'YES' AS nullable,
+  col_description(
+    (quote_ident(c.table_schema) || '.' || quote_ident(c.table_name))::regclass,
+    c.ordinal_position
+  ) AS description
+FROM information_schema.columns c
+WHERE c.table_schema IN ('etl', 'staging', 'dw')
+ORDER BY c.table_schema, c.table_name, c.ordinal_position;
