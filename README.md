@@ -98,14 +98,58 @@ If you change the web port, update `WEB_URL` and the port in `apps/web/package.j
 
 ## Stripe test payments
 
-1. Create a free Stripe account and switch to **test mode** (sandbox).
-2. In the dashboard open **Developers > API keys** and put the secret key (`sk_test_...`) in `STRIPE_SECRET_KEY`.
-3. In a second terminal run `pnpm stripe:listen`. The Stripe CLI is a dev dependency of this repo, so nothing is installed globally and no `stripe login` is needed. It prints a `whsec_...` signing secret; put it in `STRIPE_WEBHOOK_SECRET`.
-4. Restart the API, then pay with a test card such as `4242 4242 4242 4242`, any future expiry date and any CVC. Stripe documents more test cards, including declines and 3D Secure.
+The shop pays through Stripe Checkout in **test mode**: Stripe's real hosted payment page, but with fake money. Setting it up takes a few minutes and is free. Stripe's dashboard menus change from time to time, so if a name below does not match, use the dashboard search or see https://docs.stripe.com/testing.
 
-Orders become **PAID** when Stripe's webhook arrives. If it never does (for example the listener was not running), open the order and use **Check payment status**, or return to the checkout success page; both ask Stripe directly.
+### 1. Create a Stripe account
+1. Sign up at https://dashboard.stripe.com/register with an email address and password, and confirm your email if asked.
+2. If Stripe asks for a business name or other business details, enter anything (for example "Enterprise Shop Demo") or skip the step. Activating the account is only needed to take real payments and is **not** needed for test mode.
 
-Never use live keys with this project.
+### 2. Switch to test mode
+Make sure the dashboard is in **test mode** (Stripe may call it a *sandbox*); there is a toggle or banner near the top of the dashboard. Everything you create there uses fake money, and test keys start with `sk_test_`. If a key starts with `sk_live_`, you are in live mode: stop and switch back.
+
+### 3. Copy your test secret key
+1. In the dashboard open **Developers > API keys**.
+2. Reveal and copy the **Secret key** (`sk_test_...`). This project does not need the publishable key.
+3. Paste it into your `.env` file:
+   ```
+   STRIPE_SECRET_KEY=<your sk_test_ key>
+   ```
+4. Keep the key private: `.env` is git-ignored, so do not commit it, paste it into chats or screenshots, or put it in code. If it is ever exposed, roll the key in the dashboard to replace it.
+
+### 4. Forward webhooks to your machine
+Stripe cannot reach `localhost`, so the Stripe CLI relays Stripe's events to your API. The CLI is a dev dependency of this repository (nothing is installed globally) and does not need `stripe login`; it reads the key from `.env`.
+1. Make sure the app is running (`pnpm dev`).
+2. In a **second terminal** at the repository root run:
+   ```bash
+   pnpm stripe:listen
+   ```
+3. It prints a line like `Your webhook signing secret is whsec_...`. Copy that value into `.env`:
+   ```
+   STRIPE_WEBHOOK_SECRET=<your whsec_ value>
+   ```
+4. Restart the API so it reads the new value, and **leave `pnpm stripe:listen` running** whenever you test payments.
+
+### 5. Make a test payment
+1. Open the storefront and log in with a customer account.
+2. Add a product to the cart, fill in the shipping address and choose **Pay with Stripe**.
+3. On Stripe's page use the test card `4242 4242 4242 4242` with any future expiry date, any 3-digit CVC and any postal code.
+4. You are returned to the success page. The order should show **PAID**, the cart should be empty and stock should have gone down.
+
+Other test cards, including declines and 3D Secure, are listed at https://docs.stripe.com/testing. For example, `4000 0000 0000 0002` is declined.
+
+### 6. Check it in Stripe
+With the dashboard in test mode, the payment appears under **Payments**, and the events that were sent (for example `checkout.session.completed`) appear under **Developers > Events**. The `pnpm stripe:listen` terminal also logs every event it forwards together with the API's response code (200 means your API accepted it).
+
+### If something does not work
+| Symptom | Likely cause and fix |
+| --- | --- |
+| "Stripe is not configured" when paying | `STRIPE_SECRET_KEY` is missing or still the placeholder, or the API was not restarted after you set it. |
+| `pnpm stripe:listen` reports an invalid API key | The key was copied incompletely, or it is a live key, or it belongs to a different account. Copy the test secret key again. |
+| Order stays **PENDING** after paying | `pnpm stripe:listen` was not running, or `STRIPE_WEBHOOK_SECRET` does not match the one it printed. Use **Check payment status** on the order (or revisit the success page); both ask Stripe directly. |
+| "Invalid Stripe signature" in the API log | `STRIPE_WEBHOOK_SECRET` is wrong or from an older listener session. Copy the current value again and restart the API. |
+| Payment declined | You used a decline test card, or the card number was mistyped. Use `4242 4242 4242 4242`. |
+
+Orders become **PAID** when Stripe's webhook arrives. Never use live keys with this project.
 
 ## Country and currency
 
