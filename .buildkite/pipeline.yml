@@ -1,0 +1,16 @@
+steps:
+  - label: ":white_check_mark: Check the project"
+    timeout_in_minutes: 15
+    env: 
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    command: |
+      corepack enable || corepack enable --install-directory "$$HOME/.local/bin"
+      export PATH="$$HOME/.local/bin:$$PATH"
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+      export PATH="$$HOME/.local/bin:$$PATH"
+      cp .env.example .env
+      pnpm install --frozen-lockfile
+      pnpm lint
+      pnpm typecheck
+      pnpm build
+      pnpm test
