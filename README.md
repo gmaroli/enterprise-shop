@@ -36,9 +36,9 @@ Seeded accounts:
 ## Stripe (test mode only)
 1. Create a free Stripe account and open the **test mode** dashboard.
 2. Copy the test secret key (`sk_test_...`) into `STRIPE_SECRET_KEY` in `.env`.
-3. Install the Stripe CLI (`brew install stripe/stripe-cli/stripe`), run `stripe login`, then forward webhooks:
-   `stripe listen --forward-to localhost:4000/api/webhooks/stripe`
-   and put the printed `whsec_...` value in `STRIPE_WEBHOOK_SECRET`.
+3. The Stripe CLI is a dev dependency of this repo (nothing is installed globally). With `STRIPE_SECRET_KEY` set in `.env`, forward webhooks with:
+   `pnpm stripe:listen`
+   It authenticates with the key from `.env` (no `stripe login` needed) and prints a `whsec_...` value; put that in `STRIPE_WEBHOOK_SECRET`. Leave it running in its own terminal.
 4. Restart the API. Pay with Stripe's test cards (for example `4242 4242 4242 4242`, any future expiry, any CVC). See Stripe's docs for more test card numbers.
 
 Never use live keys with this project.
