@@ -88,7 +88,15 @@ Without Stripe keys everything works except paying.
 
 > `pnpm db:seed` **deletes every user, order and product** before reloading the base data. Only use it on a database you are happy to reset.
 
-**Accounts.** The base seed creates one admin (`admin@shop.test`) and one customer (`customer@shop.test`). Their demo passwords are defined in `packages/db/prisma/seed.ts`. The demo seed adds customers `demo.customer01@shop.test` to `demo.customer12@shop.test`; their password is set in `packages/db/prisma/seed-demo.ts`. You can also register new accounts at `/register`. These are local demo credentials only.
+**Demo accounts.** These exist only on your own machine, created by the seed scripts. They are fake logins for local practice; never reuse these passwords anywhere real.
+
+| Account | Email | Password | Created by |
+| --- | --- | --- | --- |
+| Admin | `admin@shop.test` | `Admin123!` | `pnpm db:seed` |
+| Customer | `customer@shop.test` | `Customer123!` | `pnpm db:seed` |
+| 12 demo customers | `demo.customer01@shop.test` to `demo.customer12@shop.test` | `Customer123!` | `pnpm db:seed:demo` |
+
+You can also register new accounts at `/register`. The passwords are defined in `packages/db/prisma/seed.ts` and `seed-demo.ts`.
 
 ## What runs in Docker
 
