@@ -1,6 +1,6 @@
 # Enterprise Shop
 
-[![CI](https://github.com/gmaroli/enterprise-shop/actions/workflows/ci.yml/badge.svg)](https://github.com/gmaroli/enterprise-shop/actions/workflows/ci.yml)
+[![CI](https://github.com/gmaroli/enterprise-shop/actions/workflows/ci.yml/badge.svg)](https://github.com/gmaroli/enterprise-shop/actions/workflows/ci.yml) [![Build status](https://badge.buildkite.com/7266a0a6f7aaaf268b695b33bcb49ad5fd5c67a9b5409ed7fb.svg)](https://buildkite.com/enterprise-shop/enterprise-shop)
 
 A demo e-commerce system built as a realistic target for learning and practising software testing and quality engineering. It has a storefront, an admin area, a REST API, a PostgreSQL database, Stripe test-mode payments, multi-currency pricing, and a separate analytics data warehouse with an ETL job.
 
