@@ -300,4 +300,4 @@ Two continuous integration (CI) setups run the same checks (install, lint, typec
 
 ## License
 
-No license has been specified for this project.
+Released under the [MIT License](LICENSE).
