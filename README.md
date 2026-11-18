@@ -81,8 +81,6 @@ The repository is a pnpm workspace orchestrated by Turborepo.
 
 ## Getting started
 
-> While the repository is private, cloning needs a GitHub account that has access to it. Sign in with an SSH key (clone with `git clone git@github.com:gmaroli/enterprise-shop.git`) or a personal access token over HTTPS.
-
 ```bash
 git clone https://github.com/gmaroli/enterprise-shop.git
 cd enterprise-shop
