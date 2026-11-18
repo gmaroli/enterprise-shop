@@ -1,5 +1,7 @@
 # Enterprise Shop
 
+[![CI](https://github.com/gmaroli/enterprise-shop/actions/workflows/ci.yml/badge.svg)](https://github.com/gmaroli/enterprise-shop/actions/workflows/ci.yml)
+
 A demo e-commerce system built as a realistic target for learning and practising software testing and quality engineering. It has a storefront, an admin area, a REST API, a PostgreSQL database, Stripe test-mode payments, multi-currency pricing, and a separate analytics data warehouse with an ETL job.
 
 It is a **local demo**: nothing here is meant to be deployed as-is, and it only ever uses Stripe **test** keys.
