@@ -90,6 +90,16 @@ Without Stripe keys everything works except paying.
 
 **Accounts.** The base seed creates one admin (`admin@shop.test`) and one customer (`customer@shop.test`). Their demo passwords are defined in `packages/db/prisma/seed.ts`. The demo seed adds customers `demo.customer01@shop.test` to `demo.customer12@shop.test`; their password is set in `packages/db/prisma/seed-demo.ts`. You can also register new accounts at `/register`. These are local demo credentials only.
 
+## What runs in Docker
+
+Only the database runs in Docker. `infra/docker-compose.yml` defines a single service:
+
+- **PostgreSQL 17** in a container named `shop-postgres`, published on port 5432. One server holds two databases: `shop` (the app) and `warehouse` (analytics, created by `pnpm warehouse:init`).
+- Data lives in a Docker **volume** named `shop-pgdata`, so it survives restarts and `pnpm db:down`. Removing the volume (for example `docker compose -f infra/docker-compose.yml down -v`) deletes all data.
+- A healthcheck marks the container `(healthy)` once Postgres accepts connections, and the container restarts automatically unless you stop it.
+
+The web app, the API and the ETL job are **not** in containers. They run directly on your machine through `pnpm dev` and the `warehouse:*` scripts. The database login in the compose file is a throwaway local password, not a real credential.
+
 ## Configuration
 
 All settings live in one `.env` file at the repository root, shared by the API, the web app, Prisma and the ETL job. `.env` is git-ignored; **never commit it**. `.env.example` lists every variable with safe local defaults.
