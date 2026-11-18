@@ -68,6 +68,7 @@ cd enterprise-shop
 pnpm install
 cp .env.example .env      # then edit .env (see "Configuration")
 pnpm db:up                # start PostgreSQL in Docker
+docker ps                 # wait until shop-postgres says "(healthy)"
 pnpm db:migrate           # create the database tables
 pnpm db:seed              # base data: products, two accounts, exchange rates
 pnpm db:seed:demo         # optional: ~220 demo orders and 12 demo customers
@@ -75,7 +76,15 @@ pnpm warehouse:init       # optional: create the analytics warehouse
 pnpm dev                  # web on :3001, API on :4000
 ```
 
-Open http://localhost:3001. Without Stripe keys everything works except paying.
+**How to tell it worked**
+
+- After `pnpm db:up`, run `docker ps`. The `shop-postgres` row should say `Up ... (healthy)`. If it says `(health: starting)`, wait a few seconds and run it again before migrating.
+- After `pnpm dev`, wait until the terminal shows `API listening on http://localhost:4000/api` and the web app reports it is ready. Then check:
+  - http://localhost:3001 shows the shop with a list of products.
+  - http://localhost:4000/api/products returns product data as JSON.
+  - http://localhost:4000/api/docs opens the interactive API documentation (Swagger).
+
+Without Stripe keys everything works except paying.
 
 > `pnpm db:seed` **deletes every user, order and product** before reloading the base data. Only use it on a database you are happy to reset.
 
