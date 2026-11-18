@@ -208,7 +208,9 @@ Useful when planning tests:
 - The web app reads the `x-forwarded-for` header for country detection, and the `shop_country` cookie pins a country.
 - Payment happens on Stripe's hosted page, which is difficult to automate; many teams exercise it manually and test around it.
 
-GitHub Actions (`.github/workflows/ci.yml`) runs lint, typecheck, build and unit tests on pushes and pull requests.
+Two continuous integration (CI) setups run the same checks (install, lint, typecheck, build and unit tests) on pull requests and pushes, so either one is enough on its own:
+- **GitHub Actions** (`.github/workflows/ci.yml`) needs no setup; it runs automatically on GitHub.
+- **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`.
 
 ## Troubleshooting
 
