@@ -55,6 +55,8 @@ The repository is a pnpm workspace orchestrated by Turborepo.
 - **uv** (Python tooling for `apps/etl`; see https://docs.astral.sh/uv/)
 - A free **Stripe account** in test mode, only needed to try payments
 
+**Operating system:** developed and run on macOS. Linux should work the same way. On Windows, use [WSL2](https://learn.microsoft.com/windows/wsl/install) (Windows Subsystem for Linux) and run every command in this README inside it, because the setup uses Unix commands such as `cp`, `mkdir -p` and `sh` (for example in `pnpm stripe:listen`).
+
 ## Getting started
 
 > While the repository is private, cloning needs a GitHub account that has access to it. Sign in with an SSH key (clone with `git clone git@github.com:gmaroli/enterprise-shop.git`) or a personal access token over HTTPS.
