@@ -23,6 +23,26 @@ It is a **local demo**: nothing here is meant to be deployed as-is, and it only 
 - Order completion driven by Stripe webhooks, with a fallback that re-checks a payment with Stripe if the webhook was missed.
 - An analytics warehouse (staging, star schema, reporting views) loaded incrementally from the app database.
 
+## Screenshots
+
+Prices are shown here in Australian dollars because the demo was run with Australia selected.
+
+**Storefront**
+
+![Storefront with product cards, category filters and a currency selector](docs/images/storefront.png)
+
+**Cart, with checkout in a non-USD currency**
+
+![Cart showing subtotal, shipping, tax and total in AUD, plus a shipping address form](docs/images/cart-currency.png)
+
+**Admin: all orders**
+
+![Admin orders table with paid, pending, failed and cancelled orders in several currencies](docs/images/admin-orders.png)
+
+**Order details**
+
+![Order page showing the items, totals, exchange rate used and shipping address](docs/images/order-detail.png)
+
 ## Architecture
 
 ```
