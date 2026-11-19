@@ -43,7 +43,10 @@ export async function registerAction(form: FormData) {
 }
 
 export async function loginAction(form: FormData) {
-  const parsed = loginSchema.safeParse({ email: text(form, 'email'), password: text(form, 'password') });
+  const parsed = loginSchema.safeParse({
+    email: text(form, 'email'),
+    password: text(form, 'password'),
+  });
   if (!parsed.success) fail('/login', 'Enter a valid email and password');
 
   try {

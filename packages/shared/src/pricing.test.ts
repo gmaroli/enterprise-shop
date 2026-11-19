@@ -66,7 +66,10 @@ describe('calculateTotals in another currency', () => {
   const aud = { ratePerUsd: 1.52 };
 
   it('converts the shipping rules', () => {
-    expect(shippingRules(1.52)).toEqual({ flatShippingCents: 1140, freeShippingThresholdCents: 15200 });
+    expect(shippingRules(1.52)).toEqual({
+      flatShippingCents: 1140,
+      freeShippingThresholdCents: 15200,
+    });
     expect(shippingRules()).toEqual({ flatShippingCents: 750, freeShippingThresholdCents: 10000 });
   });
 

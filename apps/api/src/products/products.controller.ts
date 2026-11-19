@@ -29,7 +29,9 @@ export class ProductsController {
   constructor(private readonly products: ProductsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Search and list active products (paged), priced in the requested currency' })
+  @ApiOperation({
+    summary: 'Search and list active products (paged), priced in the requested currency',
+  })
   list(@Query(new ZodValidationPipe(productQuerySchema)) query: ProductQuery) {
     return this.products.list(query);
   }

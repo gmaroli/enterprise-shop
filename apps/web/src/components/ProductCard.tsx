@@ -2,9 +2,17 @@ import Link from 'next/link';
 import { formatMoney } from '@/lib/money';
 import type { Product } from '@/lib/types';
 
-export function ProductImage({ product, className = '' }: { product: Product; className?: string }) {
+export function ProductImage({
+  product,
+  className = '',
+}: {
+  product: Product;
+  className?: string;
+}) {
   if (product.imageUrl) {
-    return <img src={product.imageUrl} alt={product.name} className={`object-cover ${className}`} />;
+    return (
+      <img src={product.imageUrl} alt={product.name} className={`object-cover ${className}`} />
+    );
   }
   return (
     <div
@@ -28,7 +36,12 @@ export function ProductCard({ product }: { product: Product }) {
         <span className="text-xs uppercase tracking-wide text-slate-500">{product.category}</span>
         <h3 className="font-semibold group-hover:text-indigo-700">{product.name}</h3>
         <div className="mt-auto flex items-center justify-between pt-2">
-          <span className="font-bold">{formatMoney(product.displayPriceCents ?? product.priceCents, product.displayCurrency ?? 'USD')}</span>
+          <span className="font-bold">
+            {formatMoney(
+              product.displayPriceCents ?? product.priceCents,
+              product.displayCurrency ?? 'USD',
+            )}
+          </span>
           {soldOut ? (
             <span className="text-xs font-semibold text-red-600">Out of stock</span>
           ) : product.stock <= 10 ? (

@@ -9,6 +9,7 @@ It is a **local demo**: nothing here is meant to be deployed as-is, and it only 
 ## What it does
 
 **For shoppers**
+
 - Browse and search a product catalog (categories, paging).
 - Register, log in, and keep a cart that persists between sessions.
 - Apply coupons, check out with a shipping address, and pay on Stripe's hosted page.
@@ -16,11 +17,13 @@ It is a **local demo**: nothing here is meant to be deployed as-is, and it only 
 - View order history and order details.
 
 **For admins**
+
 - Create, edit and deactivate products.
 - View all orders.
 - Edit the demo exchange rates.
 
 **Behind the scenes**
+
 - A REST API with JWT login, roles, input validation and Swagger documentation.
 - Order completion driven by Stripe webhooks, with a fallback that re-checks a payment with Stripe if the webhook was missed.
 - An analytics warehouse (staging, star schema, reporting views) loaded incrementally from the app database.
@@ -56,16 +59,16 @@ Stripe ──webhook──> apps/api
 apps/etl (Python) ──reads──> "shop" database ──loads──> PostgreSQL (database "warehouse")
 ```
 
-| Part | Path | Default address |
-| --- | --- | --- |
-| Storefront and admin (Next.js 15, React 19, Tailwind 4) | `apps/web` | http://localhost:3001 |
-| REST API (NestJS 11, Swagger at `/api/docs`) | `apps/api` | http://localhost:4000 |
-| Warehouse loader (Python, psycopg, SQL files) | `apps/etl` | database `warehouse` |
-| Database schema, migrations and seed data (Prisma 6) | `packages/db` | PostgreSQL on port 5432 |
-| Shared pricing, currency, permission and validation logic (zod) | `packages/shared` | |
-| Shared TypeScript configuration | `packages/config` | |
-| Docker Compose for PostgreSQL | `infra/` | |
-| Requirements, architecture, API and warehouse docs | `docs/` | |
+| Part                                                            | Path              | Default address         |
+| --------------------------------------------------------------- | ----------------- | ----------------------- |
+| Storefront and admin (Next.js 15, React 19, Tailwind 4)         | `apps/web`        | http://localhost:3001   |
+| REST API (NestJS 11, Swagger at `/api/docs`)                    | `apps/api`        | http://localhost:4000   |
+| Warehouse loader (Python, psycopg, SQL files)                   | `apps/etl`        | database `warehouse`    |
+| Database schema, migrations and seed data (Prisma 6)            | `packages/db`     | PostgreSQL on port 5432 |
+| Shared pricing, currency, permission and validation logic (zod) | `packages/shared` |                         |
+| Shared TypeScript configuration                                 | `packages/config` |                         |
+| Docker Compose for PostgreSQL                                   | `infra/`          |                         |
+| Requirements, architecture, API and warehouse docs              | `docs/`           |                         |
 
 The repository is a pnpm workspace orchestrated by Turborepo.
 
@@ -110,10 +113,10 @@ Without Stripe keys everything works except paying.
 
 **Demo accounts.** These exist only on your own machine, created by the seed scripts. They are fake logins for local practice; never reuse these passwords anywhere real.
 
-| Account | Email | Password | Created by |
-| --- | --- | --- | --- |
-| Admin | `admin@shop.test` | `Admin123!` | `pnpm db:seed` |
-| Customer | `customer@shop.test` | `Customer123!` | `pnpm db:seed` |
+| Account           | Email                                                      | Password       | Created by          |
+| ----------------- | ---------------------------------------------------------- | -------------- | ------------------- |
+| Admin             | `admin@shop.test`                                          | `Admin123!`    | `pnpm db:seed`      |
+| Customer          | `customer@shop.test`                                       | `Customer123!` | `pnpm db:seed`      |
 | 12 demo customers | `demo.customer01@shop.test` to `demo.customer12@shop.test` | `Customer123!` | `pnpm db:seed:demo` |
 
 You can also register new accounts at `/register`. The passwords are defined in `packages/db/prisma/seed.ts` and `seed-demo.ts`.
@@ -132,18 +135,18 @@ The web app, the API and the ETL job are **not** in containers. They run directl
 
 All settings live in one `.env` file at the repository root, shared by the API, the web app, Prisma and the ETL job. `.env` is git-ignored; **never commit it**. `.env.example` lists every variable with safe local defaults.
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | Connection string for the app database |
-| `WAREHOUSE_URL` | Connection string for the analytics warehouse database |
-| `API_PORT`, `API_URL` | Port the API listens on and the address the web app uses to reach it |
-| `WEB_URL` | Public address of the web app (used for Stripe redirect URLs and CORS) |
-| `JWT_SECRET` | Secret used to sign login tokens. **Set your own**, for example with `openssl rand -hex 32` |
-| `JWT_EXPIRES_IN` | Login token lifetime (default `7d`) |
-| `STRIPE_SECRET_KEY` | Your Stripe **test** secret key (starts with `sk_test_`) |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret printed by `pnpm stripe:listen` |
-| `GEO_DEV_IP` | Stand-in IP address used for country detection on localhost |
-| `GEO_DEFAULT_COUNTRY` | Country used when nothing can be detected |
+| Variable                | Purpose                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | Connection string for the app database                                                      |
+| `WAREHOUSE_URL`         | Connection string for the analytics warehouse database                                      |
+| `API_PORT`, `API_URL`   | Port the API listens on and the address the web app uses to reach it                        |
+| `WEB_URL`               | Public address of the web app (used for Stripe redirect URLs and CORS)                      |
+| `JWT_SECRET`            | Secret used to sign login tokens. **Set your own**, for example with `openssl rand -hex 32` |
+| `JWT_EXPIRES_IN`        | Login token lifetime (default `7d`)                                                         |
+| `STRIPE_SECRET_KEY`     | Your Stripe **test** secret key (starts with `sk_test_`)                                    |
+| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret printed by `pnpm stripe:listen`                                      |
+| `GEO_DEV_IP`            | Stand-in IP address used for country detection on localhost                                 |
+| `GEO_DEFAULT_COUNTRY`   | Country used when nothing can be detected                                                   |
 
 If you change the web port, update `WEB_URL` and the port in `apps/web/package.json` to match. The API only reads `.env` when it starts, so restart it after changes.
 
@@ -152,13 +155,16 @@ If you change the web port, update `WEB_URL` and the port in `apps/web/package.j
 The shop pays through Stripe Checkout in **test mode**: Stripe's real hosted payment page, but with fake money. Setting it up takes a few minutes and is free. Stripe's dashboard menus change from time to time, so if a name below does not match, use the dashboard search or see https://docs.stripe.com/testing.
 
 ### 1. Create a Stripe account
+
 1. Sign up at https://dashboard.stripe.com/register with an email address and password, and confirm your email if asked.
 2. If Stripe asks for a business name or other business details, enter anything (for example "Enterprise Shop Demo") or skip the step. Activating the account is only needed to take real payments and is **not** needed for test mode.
 
 ### 2. Switch to test mode
-Make sure the dashboard is in **test mode** (Stripe may call it a *sandbox*); there is a toggle or banner near the top of the dashboard. Everything you create there uses fake money, and test keys start with `sk_test_`. If a key starts with `sk_live_`, you are in live mode: stop and switch back.
+
+Make sure the dashboard is in **test mode** (Stripe may call it a _sandbox_); there is a toggle or banner near the top of the dashboard. Everything you create there uses fake money, and test keys start with `sk_test_`. If a key starts with `sk_live_`, you are in live mode: stop and switch back.
 
 ### 3. Copy your test secret key
+
 1. In the dashboard open **Developers > API keys**.
 2. Reveal and copy the **Secret key** (`sk_test_...`). This project does not need the publishable key.
 3. Paste it into your `.env` file:
@@ -168,7 +174,9 @@ Make sure the dashboard is in **test mode** (Stripe may call it a *sandbox*); th
 4. Keep the key private: `.env` is git-ignored, so do not commit it, paste it into chats or screenshots, or put it in code. If it is ever exposed, roll the key in the dashboard to replace it.
 
 ### 4. Forward webhooks to your machine
+
 Stripe cannot reach `localhost`, so the Stripe CLI relays Stripe's events to your API. The CLI is a dev dependency of this repository (nothing is installed globally) and does not need `stripe login`; it reads the key from `.env`.
+
 1. Make sure the app is running (`pnpm dev`).
 2. In a **second terminal** at the repository root run:
    ```bash
@@ -181,6 +189,7 @@ Stripe cannot reach `localhost`, so the Stripe CLI relays Stripe's events to you
 4. Restart the API so it reads the new value, and **leave `pnpm stripe:listen` running** whenever you test payments.
 
 ### 5. Make a test payment
+
 1. Open the storefront and log in with a customer account.
 2. Add a product to the cart, fill in the shipping address and choose **Pay with Stripe**.
 3. On Stripe's page use the test card `4242 4242 4242 4242` with any future expiry date, any 3-digit CVC and any postal code.
@@ -189,16 +198,18 @@ Stripe cannot reach `localhost`, so the Stripe CLI relays Stripe's events to you
 Other test cards, including declines and 3D Secure, are listed at https://docs.stripe.com/testing. For example, `4000 0000 0000 0002` is declined.
 
 ### 6. Check it in Stripe
+
 With the dashboard in test mode, the payment appears under **Payments**, and the events that were sent (for example `checkout.session.completed`) appear under **Developers > Events**. The `pnpm stripe:listen` terminal also logs every event it forwards together with the API's response code (200 means your API accepted it).
 
 ### If something does not work
-| Symptom | Likely cause and fix |
-| --- | --- |
-| "Stripe is not configured" when paying | `STRIPE_SECRET_KEY` is missing or still the placeholder, or the API was not restarted after you set it. |
-| `pnpm stripe:listen` reports an invalid API key | The key was copied incompletely, or it is a live key, or it belongs to a different account. Copy the test secret key again. |
-| Order stays **PENDING** after paying | `pnpm stripe:listen` was not running, or `STRIPE_WEBHOOK_SECRET` does not match the one it printed. Use **Check payment status** on the order (or revisit the success page); both ask Stripe directly. |
-| "Invalid Stripe signature" in the API log | `STRIPE_WEBHOOK_SECRET` is wrong or from an older listener session. Copy the current value again and restart the API. |
-| Payment declined | You used a decline test card, or the card number was mistyped. Use `4242 4242 4242 4242`. |
+
+| Symptom                                         | Likely cause and fix                                                                                                                                                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "Stripe is not configured" when paying          | `STRIPE_SECRET_KEY` is missing or still the placeholder, or the API was not restarted after you set it.                                                                                                |
+| `pnpm stripe:listen` reports an invalid API key | The key was copied incompletely, or it is a live key, or it belongs to a different account. Copy the test secret key again.                                                                            |
+| Order stays **PENDING** after paying            | `pnpm stripe:listen` was not running, or `STRIPE_WEBHOOK_SECRET` does not match the one it printed. Use **Check payment status** on the order (or revisit the success page); both ask Stripe directly. |
+| "Invalid Stripe signature" in the API log       | `STRIPE_WEBHOOK_SECRET` is wrong or from an older listener session. Copy the current value again and restart the API.                                                                                  |
+| Payment declined                                | You used a decline test card, or the card number was mistyped. Use `4242 4242 4242 4242`.                                                                                                              |
 
 Orders become **PAID** when Stripe's webhook arrives. Never use live keys with this project.
 
@@ -233,26 +244,27 @@ The model, rules and limitations are described in [docs/warehouse.md](docs/wareh
 
 ## Scripts
 
-| Command | What it does |
-| --- | --- |
-| `pnpm dev` | Start the web app and API with live reload |
-| `pnpm build` | Build everything |
-| `pnpm lint`, `pnpm typecheck` | Static checks |
-| `pnpm test` | Run the unit tests |
-| `pnpm format` | Format the code with Prettier |
-| `pnpm db:up`, `pnpm db:down` | Start or stop PostgreSQL |
-| `pnpm db:migrate` | Apply database migrations |
-| `pnpm db:seed` | Reset to the base data (**destructive**) |
-| `pnpm db:seed:demo` | Add or regenerate the demo orders |
-| `pnpm db:reset` | Drop and recreate the database from migrations, then re-run the base seed (**destructive**) |
-| `pnpm warehouse:*` | Warehouse commands (see above) |
-| `pnpm stripe:listen` | Forward Stripe test webhooks to the API |
+| Command                       | What it does                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------- |
+| `pnpm dev`                    | Start the web app and API with live reload                                                  |
+| `pnpm build`                  | Build everything                                                                            |
+| `pnpm lint`, `pnpm typecheck` | Static checks                                                                               |
+| `pnpm test`                   | Run the unit tests                                                                          |
+| `pnpm format`                 | Format the code with Prettier                                                               |
+| `pnpm db:up`, `pnpm db:down`  | Start or stop PostgreSQL                                                                    |
+| `pnpm db:migrate`             | Apply database migrations                                                                   |
+| `pnpm db:seed`                | Reset to the base data (**destructive**)                                                    |
+| `pnpm db:seed:demo`           | Add or regenerate the demo orders                                                           |
+| `pnpm db:reset`               | Drop and recreate the database from migrations, then re-run the base seed (**destructive**) |
+| `pnpm warehouse:*`            | Warehouse commands (see above)                                                              |
+| `pnpm stripe:listen`          | Forward Stripe test webhooks to the API                                                     |
 
 ## Testing
 
 `pnpm test` runs the developer unit tests (Vitest), which sit next to the code in `packages/shared`, `apps/api` and `apps/web`. They cover business rules such as pricing, currency conversion, validation, permissions and the Stripe payment decision logic. There are no integration, API, end-to-end, performance, security or data tests in this repository; the project is meant to be tested from outside.
 
 Useful when planning tests:
+
 - [docs/requirements.md](docs/requirements.md) describes intended behaviour.
 - The API is documented interactively at http://localhost:4000/api/docs.
 - The storefront has no dedicated test hooks (such as `data-testid`); use labels, roles and text.
@@ -260,21 +272,22 @@ Useful when planning tests:
 - Payment happens on Stripe's hosted page, which is difficult to automate; many teams exercise it manually and test around it.
 
 Two continuous integration (CI) setups run the same checks (install, lint, typecheck, build and unit tests) on pull requests and pushes, so either one is enough on its own:
+
 - **GitHub Actions** (`.github/workflows/ci.yml`) needs no setup; it runs automatically on GitHub.
 - **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`.
 
 ## Troubleshooting
 
-| Symptom | Likely cause and fix |
-| --- | --- |
-| `pnpm install` stops with `ERR_PNPM_IGNORED_BUILDS` | A dependency has an install script pnpm has not been told about. Run `pnpm approve-builds` and decide per package; the choices are stored in `pnpm-workspace.yaml`. |
-| `pnpm db:up` fails | Docker Desktop is not running. |
-| Port already in use | Another program uses 3001, 4000 or 5432. Stop it or change the port (and `WEB_URL` / `API_URL` to match). |
-| Prices always show USD locally | Set `GEO_DEV_IP` in `.env` and restart the API, or pick a country in the header. |
-| Paid order stays `PENDING` | `pnpm stripe:listen` was not running or `STRIPE_WEBHOOK_SECRET` is wrong. Use **Check payment status** on the order. |
-| "Stripe is not configured" when paying | `STRIPE_SECRET_KEY` is missing or still a placeholder; restart the API after setting it. |
-| Web or API errors after running `pnpm build` while `pnpm dev` was running | Both write to the same output folders. Stop `pnpm dev` and start it again. |
-| Environment changes have no effect | Restart the API (and web app) so they re-read `.env`. |
+| Symptom                                                                   | Likely cause and fix                                                                                                                                                |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install` stops with `ERR_PNPM_IGNORED_BUILDS`                       | A dependency has an install script pnpm has not been told about. Run `pnpm approve-builds` and decide per package; the choices are stored in `pnpm-workspace.yaml`. |
+| `pnpm db:up` fails                                                        | Docker Desktop is not running.                                                                                                                                      |
+| Port already in use                                                       | Another program uses 3001, 4000 or 5432. Stop it or change the port (and `WEB_URL` / `API_URL` to match).                                                           |
+| Prices always show USD locally                                            | Set `GEO_DEV_IP` in `.env` and restart the API, or pick a country in the header.                                                                                    |
+| Paid order stays `PENDING`                                                | `pnpm stripe:listen` was not running or `STRIPE_WEBHOOK_SECRET` is wrong. Use **Check payment status** on the order.                                                |
+| "Stripe is not configured" when paying                                    | `STRIPE_SECRET_KEY` is missing or still a placeholder; restart the API after setting it.                                                                            |
+| Web or API errors after running `pnpm build` while `pnpm dev` was running | Both write to the same output folders. Stop `pnpm dev` and start it again.                                                                                          |
+| Environment changes have no effect                                        | Restart the API (and web app) so they re-read `.env`.                                                                                                               |
 
 ## Security notes
 

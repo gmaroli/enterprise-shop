@@ -1,6 +1,23 @@
-import { BadRequestException, Body, Controller, Get, Global, Injectable, Module, Param, Put, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Global,
+  Injectable,
+  Module,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { BASE_CURRENCY, currencySchema, exchangeRateSchema, type Currency, type ExchangeRateInput } from '@shop/shared';
+import {
+  BASE_CURRENCY,
+  currencySchema,
+  exchangeRateSchema,
+  type Currency,
+  type ExchangeRateInput,
+} from '@shop/shared';
 import { AuthGuard, Roles, RolesGuard } from '../common/auth';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { PrismaService } from '../prisma/prisma.service';
@@ -28,13 +45,19 @@ export class RatesService {
   }
 
   async update(currency: Currency, input: ExchangeRateInput) {
-    if (currency === BASE_CURRENCY) throw new BadRequestException('USD is the base currency and cannot be changed');
+    if (currency === BASE_CURRENCY)
+      throw new BadRequestException('USD is the base currency and cannot be changed');
     const row = await this.prisma.exchangeRate.upsert({
       where: { currency },
       update: { perUsd: input.perUsd, source: 'admin' },
       create: { currency, perUsd: input.perUsd, source: 'admin' },
     });
-    return { currency: row.currency, perUsd: row.perUsd.toNumber(), source: row.source, updatedAt: row.updatedAt };
+    return {
+      currency: row.currency,
+      perUsd: row.perUsd.toNumber(),
+      source: row.source,
+      updatedAt: row.updatedAt,
+    };
   }
 }
 

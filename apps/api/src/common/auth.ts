@@ -54,6 +54,8 @@ export class RolesGuard implements CanActivate {
   }
 }
 
-export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): AuthUser => {
-  return ctx.switchToHttp().getRequest<AuthedRequest>().user;
-});
+export const CurrentUser = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext): AuthUser => {
+    return ctx.switchToHttp().getRequest<AuthedRequest>().user;
+  },
+);

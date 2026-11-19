@@ -5,7 +5,11 @@ import { formatMoney } from '@/lib/money';
 import { requireUser } from '@/lib/session';
 import type { Order } from '@/lib/types';
 
-export default async function SuccessPage({ searchParams }: { searchParams: Promise<{ order?: string }> }) {
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ order?: string }>;
+}) {
   const { order: orderId } = await searchParams;
   const { token } = await requireUser();
   if (!orderId) return <p>No order specified.</p>;

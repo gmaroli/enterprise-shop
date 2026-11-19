@@ -34,19 +34,22 @@ export async function Header() {
               defaultValue={region.source === 'selected' ? region.country : ''}
               className="rounded-md border border-slate-300 bg-white px-1.5 py-1"
             >
-              <option value="">
-                Auto ({region.country})
-              </option>
+              <option value="">Auto ({region.country})</option>
               {SUPPORTED_COUNTRIES.map((c) => (
                 <option key={c} value={c}>
                   {COUNTRY_NAMES[c]}
                 </option>
               ))}
             </select>
-            <span className="font-semibold text-slate-600" title="Prices are shown and charged in this currency">
+            <span
+              className="font-semibold text-slate-600"
+              title="Prices are shown and charged in this currency"
+            >
               {region.currency}
             </span>
-            <button className="rounded-md border border-slate-300 px-2 py-1 font-semibold hover:bg-slate-100">Set</button>
+            <button className="rounded-md border border-slate-300 px-2 py-1 font-semibold hover:bg-slate-100">
+              Set
+            </button>
           </form>
           <Link href="/">Shop</Link>
           {user && <Link href="/cart">Cart{cartCount > 0 ? ` (${cartCount})` : ''}</Link>}

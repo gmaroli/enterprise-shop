@@ -2,7 +2,11 @@ import Link from 'next/link';
 import { registerAction } from '@/app/actions';
 import { Button, ErrorBanner, Field } from '@/components/ui';
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { error } = await searchParams;
   return (
     <div className="mx-auto max-w-sm">

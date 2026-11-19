@@ -4,7 +4,10 @@ import type { OrderStatus } from '@shop/shared';
 export function ErrorBanner({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <div role="alert" className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+    <div
+      role="alert"
+      className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+    >
       {message}
     </div>
   );
@@ -44,7 +47,10 @@ export function Button({
   children,
   variant = 'primary',
   ...props
-}: { children: ReactNode; variant?: 'primary' | 'secondary' | 'danger' } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: {
+  children: ReactNode;
+  variant?: 'primary' | 'secondary' | 'danger';
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const styles = {
     primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
     secondary: 'bg-white text-slate-800 border border-slate-300 hover:bg-slate-100',
@@ -69,6 +75,8 @@ const statusStyles: Record<OrderStatus, string> = {
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusStyles[status]}`}>{status}</span>
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusStyles[status]}`}>
+      {status}
+    </span>
   );
 }

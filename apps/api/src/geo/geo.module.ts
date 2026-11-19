@@ -36,13 +36,15 @@ export class GeoService {
       ip = normalizeIp(this.config.get<string>('GEO_DEV_IP'));
       source = 'dev_ip';
     }
-    if (!ip) return { country: fallback, currency: currencyForCountry(fallback), source: 'default' };
+    if (!ip)
+      return { country: fallback, currency: currencyForCountry(fallback), source: 'default' };
 
     const reader = await this.open();
     // This database stores a flat { country_code } record rather than MaxMind's nested layout.
     const record = reader.get(ip) as unknown as { country_code?: string } | null;
     const code = record?.country_code?.toUpperCase();
-    if (!code) return { country: fallback, currency: currencyForCountry(fallback), source: 'default' };
+    if (!code)
+      return { country: fallback, currency: currencyForCountry(fallback), source: 'default' };
     return { country: code, currency: currencyForCountry(code), source };
   }
 }
@@ -54,7 +56,11 @@ class GeoController {
 
   @Get()
   @ApiOperation({ summary: 'Country and currency for the caller, detected from the IP address' })
-  @ApiHeader({ name: 'x-client-ip', required: false, description: 'End-user IP forwarded by the web app' })
+  @ApiHeader({
+    name: 'x-client-ip',
+    required: false,
+    description: 'End-user IP forwarded by the web app',
+  })
   detect(@Req() req: Request, @Headers('x-client-ip') clientIp?: string) {
     return this.geo.detect(clientIp ?? req.ip);
   }

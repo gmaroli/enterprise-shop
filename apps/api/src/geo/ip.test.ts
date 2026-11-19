@@ -21,7 +21,17 @@ describe('normalizeIp', () => {
 
 describe('isPrivateIp', () => {
   it('flags private, loopback and link-local ranges', () => {
-    for (const ip of ['127.0.0.1', '10.1.2.3', '192.168.0.5', '172.16.0.1', '172.31.255.255', '169.254.1.1', '::1', 'fd00::1', 'fe80::1']) {
+    for (const ip of [
+      '127.0.0.1',
+      '10.1.2.3',
+      '192.168.0.5',
+      '172.16.0.1',
+      '172.31.255.255',
+      '169.254.1.1',
+      '::1',
+      'fd00::1',
+      'fe80::1',
+    ]) {
       expect(isPrivateIp(ip)).toBe(true);
     }
   });

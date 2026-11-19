@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Module, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Module,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { cartItemSchema, currencySchema, type CartItemInput, type Currency } from '@shop/shared';
 import { z } from 'zod';
@@ -19,7 +30,11 @@ class CartController {
   @Get()
   @ApiOperation({ summary: 'Get my cart with totals' })
   @ApiQuery({ name: 'coupon', required: false, description: 'Preview totals with a coupon code' })
-  @ApiQuery({ name: 'currency', required: false, description: 'Price the cart in this currency (default USD)' })
+  @ApiQuery({
+    name: 'currency',
+    required: false,
+    description: 'Price the cart in this currency (default USD)',
+  })
   get(
     @CurrentUser() user: AuthUser,
     @Query('coupon') coupon?: string,
@@ -61,7 +76,10 @@ class CartController {
 
   @Delete()
   @ApiOperation({ summary: 'Empty the cart' })
-  clear(@CurrentUser() user: AuthUser, @Query('currency', currencyParam) currency: Currency = 'USD') {
+  clear(
+    @CurrentUser() user: AuthUser,
+    @Query('currency', currencyParam) currency: Currency = 'USD',
+  ) {
     return this.cart.clear(user.id, currency);
   }
 }

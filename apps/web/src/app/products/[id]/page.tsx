@@ -30,7 +30,12 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <span className="text-xs uppercase tracking-wide text-slate-500">{product.category}</span>
         <h1 className="mt-1 text-2xl font-bold">{product.name}</h1>
         <p className="mt-1 text-sm text-slate-500">SKU {product.sku}</p>
-        <p className="mt-4 text-3xl font-bold">{formatMoney(product.displayPriceCents ?? product.priceCents, product.displayCurrency ?? 'USD')}</p>
+        <p className="mt-4 text-3xl font-bold">
+          {formatMoney(
+            product.displayPriceCents ?? product.priceCents,
+            product.displayCurrency ?? 'USD',
+          )}
+        </p>
         <p className="mt-4 text-slate-700">{product.description}</p>
         <p className={`mt-4 text-sm font-semibold ${soldOut ? 'text-red-600' : 'text-green-700'}`}>
           {soldOut ? 'Out of stock' : `${product.stock} in stock`}

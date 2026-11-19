@@ -71,7 +71,12 @@ export class CartService {
     return this.get(userId, undefined, currency);
   }
 
-  async setQuantity(userId: string, productId: string, quantity: number, currency: Currency = 'USD') {
+  async setQuantity(
+    userId: string,
+    productId: string,
+    quantity: number,
+    currency: Currency = 'USD',
+  ) {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product || !product.active) throw new NotFoundException('Product not found');
     if (quantity > product.stock) throw new BadRequestException(`Only ${product.stock} in stock`);

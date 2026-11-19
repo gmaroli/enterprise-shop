@@ -28,7 +28,13 @@ export function ProductForm({ product }: { product?: Product }) {
         <Field label="Stock" name="stock" type="number" defaultValue={product?.stock ?? 0} />
       </div>
       <Field label="Category" name="category" defaultValue={product?.category} />
-      <Field label="Image URL (optional)" name="imageUrl" type="url" required={false} defaultValue={product?.imageUrl ?? ''} />
+      <Field
+        label="Image URL (optional)"
+        name="imageUrl"
+        type="url"
+        required={false}
+        defaultValue={product?.imageUrl ?? ''}
+      />
       <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
         <input type="checkbox" name="active" defaultChecked={product?.active ?? true} />
         Active (visible in the shop)

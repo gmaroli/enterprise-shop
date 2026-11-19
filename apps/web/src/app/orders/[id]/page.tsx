@@ -26,7 +26,10 @@ export default async function OrderPage({
       </div>
       <ErrorBanner message={error} />
       {order.status === 'PENDING' && (
-        <form action={syncOrderAction} className="mb-4 flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
+        <form
+          action={syncOrderAction}
+          className="mb-4 flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm"
+        >
           <input type="hidden" name="orderId" value={order.id} />
           <span className="flex-1 text-amber-900">
             Payment not confirmed yet. If you already paid, check the status with Stripe.
@@ -37,10 +40,13 @@ export default async function OrderPage({
         </form>
       )}
       <p className="text-sm text-slate-500">Placed {new Date(order.createdAt).toLocaleString()}</p>
-      {order.paidAt && <p className="text-sm text-slate-500">Paid {new Date(order.paidAt).toLocaleString()}</p>}
+      {order.paidAt && (
+        <p className="text-sm text-slate-500">Paid {new Date(order.paidAt).toLocaleString()}</p>
+      )}
       {order.currency.toLowerCase() !== 'usd' && (
         <p className="text-sm text-slate-500">
-          Charged in {order.currency.toUpperCase()} (1 USD = {Number(order.fxRate)} {order.currency.toUpperCase()} at the time of purchase)
+          Charged in {order.currency.toUpperCase()} (1 USD = {Number(order.fxRate)}{' '}
+          {order.currency.toUpperCase()} at the time of purchase)
         </p>
       )}
 

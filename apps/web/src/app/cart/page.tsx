@@ -39,7 +39,10 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
         <div className="lg:col-span-2">
           <ul className="divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
             {cart.items.map((item) => (
-              <li key={item.productId} className="flex flex-wrap items-center justify-between gap-4 p-4">
+              <li
+                key={item.productId}
+                className="flex flex-wrap items-center justify-between gap-4 p-4"
+              >
                 <div>
                   <p className="font-semibold">{item.name}</p>
                   <p className="text-sm text-slate-500">
@@ -92,7 +95,9 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
               Apply coupon
             </Button>
           </form>
-          {coupon && !totals.appliedCoupon && <p className="mt-2 text-sm text-red-600">Invalid coupon code.</p>}
+          {coupon && !totals.appliedCoupon && (
+            <p className="mt-2 text-sm text-red-600">Invalid coupon code.</p>
+          )}
           {totals.appliedCoupon && (
             <p className="mt-2 text-sm text-green-700">Coupon {totals.appliedCoupon} applied.</p>
           )}
@@ -102,8 +107,13 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
           <h2 className="mb-3 font-semibold">Order summary</h2>
           <dl className="space-y-2 text-sm">
             <Row label="Subtotal" value={fmt(totals.subtotalCents)} />
-            {totals.discountCents > 0 && <Row label="Discount" value={`-${fmt(totals.discountCents)}`} />}
-            <Row label="Shipping" value={totals.shippingCents === 0 ? 'Free' : fmt(totals.shippingCents)} />
+            {totals.discountCents > 0 && (
+              <Row label="Discount" value={`-${fmt(totals.discountCents)}`} />
+            )}
+            <Row
+              label="Shipping"
+              value={totals.shippingCents === 0 ? 'Free' : fmt(totals.shippingCents)}
+            />
             <Row label="Tax (8%)" value={fmt(totals.taxCents)} />
             <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold">
               <dt>Total</dt>
@@ -111,8 +121,8 @@ export default async function CartPage({ searchParams }: { searchParams: SearchP
             </div>
           </dl>
           <p className="mt-2 text-xs text-slate-500">
-            Free shipping on orders of {fmt(cart.shippingRules.freeShippingThresholdCents)} or more. Prices are shown
-            and charged in {cart.currency}.
+            Free shipping on orders of {fmt(cart.shippingRules.freeShippingThresholdCents)} or more.
+            Prices are shown and charged in {cart.currency}.
           </p>
 
           <form action={checkoutAction} className="mt-5 space-y-3">

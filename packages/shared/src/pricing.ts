@@ -51,14 +51,25 @@ export function calculateTotals(
   const discountedSubtotal = subtotalCents - discountCents;
 
   let shippingCents = 0;
-  if (lines.length > 0 && coupon !== 'FREESHIP' && subtotalCents < rules.freeShippingThresholdCents) {
+  if (
+    lines.length > 0 &&
+    coupon !== 'FREESHIP' &&
+    subtotalCents < rules.freeShippingThresholdCents
+  ) {
     shippingCents = rules.flatShippingCents;
   }
 
   const taxCents = Math.round(discountedSubtotal * TAX_RATE);
   const totalCents = discountedSubtotal + shippingCents + taxCents;
 
-  return { subtotalCents, discountCents, shippingCents, taxCents, totalCents, appliedCoupon: coupon };
+  return {
+    subtotalCents,
+    discountCents,
+    shippingCents,
+    taxCents,
+    totalCents,
+    appliedCoupon: coupon,
+  };
 }
 
 export function formatCents(cents: number, currency = 'USD'): string {

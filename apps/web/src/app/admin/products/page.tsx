@@ -6,7 +6,11 @@ import { api } from '@/lib/api';
 import { requireAdmin } from '@/lib/session';
 import type { ProductPage } from '@/lib/types';
 
-export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string }>;
+}) {
   const { page = '1', q = '' } = await searchParams;
   const { token } = await requireAdmin();
   const qs = new URLSearchParams({ page, pageSize: '20' });
@@ -19,13 +23,22 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Products</h1>
         <div className="flex gap-3">
-          <Link href="/admin/rates" className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold">
+          <Link
+            href="/admin/rates"
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold"
+          >
             Exchange rates
           </Link>
-          <Link href="/admin/orders" className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold">
+          <Link
+            href="/admin/orders"
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold"
+          >
             All orders
           </Link>
-          <Link href="/admin/products/new" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
+          <Link
+            href="/admin/products/new"
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+          >
             New product
           </Link>
         </div>
@@ -83,11 +96,17 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
       {pages > 1 && (
         <nav className="mt-4 flex gap-4 text-sm">
-          {data.page > 1 && <Link href={`/admin/products?page=${data.page - 1}${q ? `&q=${q}` : ''}`}>Previous</Link>}
+          {data.page > 1 && (
+            <Link href={`/admin/products?page=${data.page - 1}${q ? `&q=${q}` : ''}`}>
+              Previous
+            </Link>
+          )}
           <span>
             Page {data.page} of {pages}
           </span>
-          {data.page < pages && <Link href={`/admin/products?page=${data.page + 1}${q ? `&q=${q}` : ''}`}>Next</Link>}
+          {data.page < pages && (
+            <Link href={`/admin/products?page=${data.page + 1}${q ? `&q=${q}` : ''}`}>Next</Link>
+          )}
         </nav>
       )}
     </div>

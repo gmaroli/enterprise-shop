@@ -8,7 +8,9 @@ describe('schemas', () => {
   });
 
   it('rejects short passwords', () => {
-    expect(registerSchema.safeParse({ email: 'a@b.com', password: 'short', name: 'A' }).success).toBe(false);
+    expect(
+      registerSchema.safeParse({ email: 'a@b.com', password: 'short', name: 'A' }).success,
+    ).toBe(false);
   });
 
   it('limits cart quantity', () => {

@@ -114,9 +114,21 @@ export class OrdersService {
         });
       }
 
-      const discounts = order.discountCents > 0
-        ? [{ coupon: (await stripe.coupons.create({ amount_off: order.discountCents, currency: stripeCurrency, duration: 'once', name: order.couponCode ?? 'Discount' })).id }]
-        : undefined;
+      const discounts =
+        order.discountCents > 0
+          ? [
+              {
+                coupon: (
+                  await stripe.coupons.create({
+                    amount_off: order.discountCents,
+                    currency: stripeCurrency,
+                    duration: 'once',
+                    name: order.couponCode ?? 'Discount',
+                  })
+                ).id,
+              },
+            ]
+          : undefined;
 
       const session = await stripe.checkout.sessions.create({
         mode: 'payment',
@@ -177,7 +189,9 @@ export class OrdersService {
     try {
       session = await this.stripeService.stripe.checkout.sessions.retrieve(order.stripeSessionId);
     } catch (error) {
-      this.logger.error(`Could not retrieve Stripe session for order ${order.id}: ${String(error)}`);
+      this.logger.error(
+        `Could not retrieve Stripe session for order ${order.id}: ${String(error)}`,
+      );
       throw new BadGatewayException('Could not check the payment with Stripe. Try again shortly.');
     }
     await this.applyStripeSession(order.id, session);
@@ -189,7 +203,10 @@ export class OrdersService {
    * repeatedly and concurrently (webhook retries, duplicate events, success-page sync).
    */
   async applyStripeSession(orderId: string, session: Stripe.Checkout.Session, eventType?: string) {
-    const order = await this.prisma.order.findUnique({ where: { id: orderId }, include: orderInclude });
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderInclude,
+    });
     if (!order) {
       this.logger.warn(`Stripe session ${session.id} refers to unknown order ${orderId}`);
       return;
@@ -220,7 +237,14 @@ export class OrdersService {
     return typeof intent === 'string' ? intent : (intent?.id ?? null);
   }
 
-  private async markPaid(order: { id: string; userId: string; items: { productId: string; sku: string; quantity: number }[] }, paymentIntentId: string | null) {
+  private async markPaid(
+    order: {
+      id: string;
+      userId: string;
+      items: { productId: string; sku: string; quantity: number }[];
+    },
+    paymentIntentId: string | null,
+  ) {
     await this.prisma.$transaction(async (tx) => {
       // Claim the order; if a concurrent call already marked it paid, do nothing.
       const claimed = await tx.order.updateMany({
