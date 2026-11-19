@@ -1,51 +1,14 @@
-# Each check is its own step so it shows up as its own line on a pull request.
-# Every step starts with the same shared setup (.buildkite/scripts/setup.sh).
-# Each step posts its own GitHub commit status through `notify`, named buildkite/<check>.
-# Steps run in parallel and each uses a fresh agent, so each one runs the setup itself.
+# Three logical checks, each its own line on a pull request. Each step posts its own
+# GitHub commit status through `notify`, named buildkite/<check>.
+# Steps run in parallel on fresh agents, so each one runs the shared setup once.
 steps:
-  - label: ':eslint: Lint (ESLint)'
-    key: lint-eslint
+  - label: ':mag: Code quality'
+    key: code-quality
     notify:
       - github_commit_status:
-          context: 'buildkite/Lint (ESLint)'
+          context: 'buildkite/Code quality'
     timeout_in_minutes: 15
-    command: |
-      .buildkite/scripts/setup.sh
-      export PATH="$$HOME/.local/bin:$$PATH"
-      pnpm exec turbo run lint --filter='!@shop/etl'
-
-  - label: ':python: Lint (Ruff, ETL)'
-    key: lint-ruff
-    notify:
-      - github_commit_status:
-          context: 'buildkite/Lint (Ruff, ETL)'
-    timeout_in_minutes: 10
-    command: |
-      .buildkite/scripts/setup.sh python
-      export PATH="$$HOME/.local/bin:$$PATH"
-      cd apps/etl && uv run ruff check .
-
-  - label: ':sparkles: Format (Prettier)'
-    key: format
-    notify:
-      - github_commit_status:
-          context: 'buildkite/Format (Prettier)'
-    timeout_in_minutes: 10
-    command: |
-      .buildkite/scripts/setup.sh
-      export PATH="$$HOME/.local/bin:$$PATH"
-      pnpm format:check
-
-  - label: ':typescript: Typecheck'
-    key: typecheck
-    notify:
-      - github_commit_status:
-          context: 'buildkite/Typecheck'
-    timeout_in_minutes: 15
-    command: |
-      .buildkite/scripts/setup.sh
-      export PATH="$$HOME/.local/bin:$$PATH"
-      pnpm typecheck
+    command: .buildkite/scripts/code-quality.sh
 
   - label: ':hammer: Build'
     key: build
@@ -54,8 +17,7 @@ steps:
           context: 'buildkite/Build'
     timeout_in_minutes: 15
     command: |
-      .buildkite/scripts/setup.sh
-      export PATH="$$HOME/.local/bin:$$PATH"
+      source .buildkite/scripts/setup.sh
       pnpm build
 
   - label: ':white_check_mark: Unit tests'
@@ -65,6 +27,5 @@ steps:
           context: 'buildkite/Unit tests'
     timeout_in_minutes: 15
     command: |
-      .buildkite/scripts/setup.sh
-      export PATH="$$HOME/.local/bin:$$PATH"
+      source .buildkite/scripts/setup.sh
       pnpm test
