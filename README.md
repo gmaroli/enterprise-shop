@@ -272,19 +272,18 @@ Useful when planning tests:
 - The web app reads the `x-forwarded-for` header for country detection, and the `shop_country` cookie pins a country.
 - Payment happens on Stripe's hosted page, which is difficult to automate; many teams exercise it manually and test around it.
 
-Continuous integration (CI) runs on Buildkite for pull requests and pushes. A GitHub Actions setup with the same checks is kept but paused (it only runs when started by hand). Each check is its own job (GitHub Actions) or step (Buildkite), so a pull request shows one line per check and you can see at a glance what failed:
+Continuous integration (CI) runs on Buildkite for pull requests and pushes. A GitHub Actions setup is kept but paused (it only runs when started by hand). Buildkite reports three checks, so a pull request shows three short lines:
 
-| Check             | What it runs                                     |
-| ----------------- | ------------------------------------------------ |
-| Lint (ESLint)     | `pnpm exec turbo run lint --filter='!@shop/etl'` |
-| Lint (Ruff, ETL)  | `pnpm --filter @shop/etl lint`                   |
-| Format (Prettier) | `pnpm format:check`                              |
-| Typecheck         | `pnpm typecheck`                                 |
-| Build             | `pnpm build`                                     |
-| Unit tests        | `pnpm test`                                      |
+| Check        | What it runs                                                                         |
+| ------------ | ------------------------------------------------------------------------------------ |
+| Code quality | ESLint, Ruff (ETL), Prettier (`pnpm format:check`) and `pnpm typecheck`, in one step |
+| Build        | `pnpm build`                                                                         |
+| Unit tests   | `pnpm test`                                                                          |
+
+Code quality runs every check even if one fails, and lists which ones failed (in the log and as a build annotation).
 
 - **GitHub Actions** (`.github/workflows/ci.yml`) is **paused**: it runs only when started by hand from the Actions tab. Shared setup lives in `.github/actions/setup`. See [docs/ci.md](docs/ci.md) for how to switch it back on.
-- **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`. Shared setup lives in `.buildkite/scripts/setup.sh`.
+- **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`. Shared setup lives in `.buildkite/scripts/setup.sh` and the code quality step in `.buildkite/scripts/code-quality.sh`.
 
 More detail, including how to require these checks before merging, is in [docs/ci.md](docs/ci.md).
 
