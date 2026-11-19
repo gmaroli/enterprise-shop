@@ -1,9 +1,13 @@
 name: CI
 
+# Paused: Buildkite is the active CI for now, so this only runs when started by hand
+# (Actions tab > CI > Run workflow). To switch it back on, restore the push and
+# pull_request triggers below and add its checks to the branch protection rule.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  # pull_request:
 
 permissions:
   contents: read

@@ -272,7 +272,7 @@ Useful when planning tests:
 - The web app reads the `x-forwarded-for` header for country detection, and the `shop_country` cookie pins a country.
 - Payment happens on Stripe's hosted page, which is difficult to automate; many teams exercise it manually and test around it.
 
-Two continuous integration (CI) setups run the same checks on pull requests and pushes, so either one is enough on its own. Each check is its own job (GitHub Actions) or step (Buildkite), so a pull request shows one line per check and you can see at a glance what failed:
+Continuous integration (CI) runs on Buildkite for pull requests and pushes. A GitHub Actions setup with the same checks is kept but paused (it only runs when started by hand). Each check is its own job (GitHub Actions) or step (Buildkite), so a pull request shows one line per check and you can see at a glance what failed:
 
 | Check             | What it runs                                     |
 | ----------------- | ------------------------------------------------ |
@@ -283,7 +283,7 @@ Two continuous integration (CI) setups run the same checks on pull requests and 
 | Build             | `pnpm build`                                     |
 | Unit tests        | `pnpm test`                                      |
 
-- **GitHub Actions** (`.github/workflows/ci.yml`) needs no setup; it runs automatically on GitHub. Shared setup lives in `.github/actions/setup`.
+- **GitHub Actions** (`.github/workflows/ci.yml`) is **paused**: it runs only when started by hand from the Actions tab. Shared setup lives in `.github/actions/setup`. See [docs/ci.md](docs/ci.md) for how to switch it back on.
 - **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`. Shared setup lives in `.buildkite/scripts/setup.sh`.
 
 More detail, including how to require these checks before merging, is in [docs/ci.md](docs/ci.md).

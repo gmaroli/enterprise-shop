@@ -1,6 +1,8 @@
 # Continuous integration
 
-Two pipelines run the same checks: GitHub Actions (`.github/workflows/ci.yml`) and Buildkite (`.buildkite/pipeline.yml`). Both run on every pull request and on pushes to `main`.
+Two pipelines define the same checks: Buildkite (`.buildkite/pipeline.yml`) and GitHub Actions (`.github/workflows/ci.yml`).
+
+**Status:** Buildkite is the active CI and runs on every pull request and on pushes to `main`. GitHub Actions is **paused** (since 2026-11-19): its workflow only runs when started by hand (Actions tab > CI > Run workflow), so it adds no checks to pull requests. To switch it back on, restore the `push` and `pull_request` triggers at the top of `ci.yml` and add its checks to the branch protection rule.
 
 ## Checks
 
@@ -33,8 +35,8 @@ pnpm format:check && pnpm lint && pnpm typecheck && pnpm build && pnpm test
 The pipelines only report results. Nothing is enforced until the repository has a branch protection rule (or ruleset) on `main` in GitHub, under Settings > Branches (or Rules):
 
 - Require a pull request before merging (no direct pushes to `main`).
-- Require status checks to pass, and select each check above for GitHub Actions: `Lint (ESLint)`, `Lint (Ruff, ETL)`, `Format (Prettier)`, `Typecheck`, `Build`, `Unit tests`.
-- For Buildkite, require its per-step statuses too: `buildkite/Lint (ESLint)`, `buildkite/Lint (Ruff, ETL)`, `buildkite/Format (Prettier)`, `buildkite/Typecheck`, `buildkite/Build`, `buildkite/Unit tests`. Each step posts its own GitHub commit status through a `notify` block in `.buildkite/pipeline.yml`; without it GitHub only sees one line (`buildkite/enterprise-shop`) for the whole build.
+- Require status checks to pass, and select the Buildkite statuses: `buildkite/Lint (ESLint)`, `buildkite/Lint (Ruff, ETL)`, `buildkite/Format (Prettier)`, `buildkite/Typecheck`, `buildkite/Build`, `buildkite/Unit tests`. Each step posts its own GitHub commit status through a `notify` block in `.buildkite/pipeline.yml`; without it GitHub only sees one line (`buildkite/enterprise-shop`) for the whole build.
+- Do **not** require the GitHub Actions checks (`Lint (ESLint)`, `Format (Prettier)` and so on) while that workflow is paused: they never report, so every merge would be blocked. Add them only when the workflow is switched back on.
 - Require branches to be up to date before merging.
 
 Note: required status checks and rulesets on private repositories need a paid GitHub plan; on a free plan they are available for public repositories.
