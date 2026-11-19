@@ -1,9 +1,13 @@
 # Each check is its own step so it shows up as its own line on a pull request.
 # Every step starts with the same shared setup (.buildkite/scripts/setup.sh).
+# Each step posts its own GitHub commit status through `notify`, named buildkite/<check>.
 # Steps run in parallel and each uses a fresh agent, so each one runs the setup itself.
 steps:
   - label: ':eslint: Lint (ESLint)'
     key: lint-eslint
+    notify:
+      - github_commit_status:
+          context: 'buildkite/Lint (ESLint)'
     timeout_in_minutes: 15
     command: |
       .buildkite/scripts/setup.sh
@@ -12,6 +16,9 @@ steps:
 
   - label: ':python: Lint (Ruff, ETL)'
     key: lint-ruff
+    notify:
+      - github_commit_status:
+          context: 'buildkite/Lint (Ruff, ETL)'
     timeout_in_minutes: 10
     command: |
       .buildkite/scripts/setup.sh python
@@ -20,6 +27,9 @@ steps:
 
   - label: ':sparkles: Format (Prettier)'
     key: format
+    notify:
+      - github_commit_status:
+          context: 'buildkite/Format (Prettier)'
     timeout_in_minutes: 10
     command: |
       .buildkite/scripts/setup.sh
@@ -28,6 +38,9 @@ steps:
 
   - label: ':typescript: Typecheck'
     key: typecheck
+    notify:
+      - github_commit_status:
+          context: 'buildkite/Typecheck'
     timeout_in_minutes: 15
     command: |
       .buildkite/scripts/setup.sh
@@ -36,6 +49,9 @@ steps:
 
   - label: ':hammer: Build'
     key: build
+    notify:
+      - github_commit_status:
+          context: 'buildkite/Build'
     timeout_in_minutes: 15
     command: |
       .buildkite/scripts/setup.sh
@@ -44,6 +60,9 @@ steps:
 
   - label: ':white_check_mark: Unit tests'
     key: unit-tests
+    notify:
+      - github_commit_status:
+          context: 'buildkite/Unit tests'
     timeout_in_minutes: 15
     command: |
       .buildkite/scripts/setup.sh

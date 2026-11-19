@@ -34,7 +34,7 @@ The pipelines only report results. Nothing is enforced until the repository has 
 
 - Require a pull request before merging (no direct pushes to `main`).
 - Require status checks to pass, and select each check above for GitHub Actions: `Lint (ESLint)`, `Lint (Ruff, ETL)`, `Format (Prettier)`, `Typecheck`, `Build`, `Unit tests`.
-- For Buildkite, add its checks as required too. In the Buildkite pipeline's GitHub settings, turn on the option that creates a separate GitHub commit status for each step; otherwise GitHub only sees one line for the whole build.
+- For Buildkite, require its per-step statuses too: `buildkite/Lint (ESLint)`, `buildkite/Lint (Ruff, ETL)`, `buildkite/Format (Prettier)`, `buildkite/Typecheck`, `buildkite/Build`, `buildkite/Unit tests`. Each step posts its own GitHub commit status through a `notify` block in `.buildkite/pipeline.yml`; without it GitHub only sees one line (`buildkite/enterprise-shop`) for the whole build.
 - Require branches to be up to date before merging.
 
 Note: required status checks and rulesets on private repositories need a paid GitHub plan; on a free plan they are available for public repositories.
