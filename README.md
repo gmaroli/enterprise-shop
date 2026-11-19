@@ -251,6 +251,7 @@ The model, rules and limitations are described in [docs/warehouse.md](docs/wareh
 | `pnpm lint`, `pnpm typecheck` | Static checks                                                                               |
 | `pnpm test`                   | Run the unit tests                                                                          |
 | `pnpm format`                 | Format the code with Prettier                                                               |
+| `pnpm format:check`           | Check formatting without changing files (what CI runs)                                      |
 | `pnpm db:up`, `pnpm db:down`  | Start or stop PostgreSQL                                                                    |
 | `pnpm db:migrate`             | Apply database migrations                                                                   |
 | `pnpm db:seed`                | Reset to the base data (**destructive**)                                                    |
@@ -271,10 +272,21 @@ Useful when planning tests:
 - The web app reads the `x-forwarded-for` header for country detection, and the `shop_country` cookie pins a country.
 - Payment happens on Stripe's hosted page, which is difficult to automate; many teams exercise it manually and test around it.
 
-Two continuous integration (CI) setups run the same checks (install, lint, typecheck, build and unit tests) on pull requests and pushes, so either one is enough on its own:
+Two continuous integration (CI) setups run the same checks on pull requests and pushes, so either one is enough on its own. Each check is its own job (GitHub Actions) or step (Buildkite), so a pull request shows one line per check and you can see at a glance what failed:
 
-- **GitHub Actions** (`.github/workflows/ci.yml`) needs no setup; it runs automatically on GitHub.
-- **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`.
+| Check             | What it runs                                     |
+| ----------------- | ------------------------------------------------ |
+| Lint (ESLint)     | `pnpm exec turbo run lint --filter='!@shop/etl'` |
+| Lint (Ruff, ETL)  | `pnpm --filter @shop/etl lint`                   |
+| Format (Prettier) | `pnpm format:check`                              |
+| Typecheck         | `pnpm typecheck`                                 |
+| Build             | `pnpm build`                                     |
+| Unit tests        | `pnpm test`                                      |
+
+- **GitHub Actions** (`.github/workflows/ci.yml`) needs no setup; it runs automatically on GitHub. Shared setup lives in `.github/actions/setup`.
+- **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`. Shared setup lives in `.buildkite/scripts/setup.sh`.
+
+More detail, including how to require these checks before merging, is in [docs/ci.md](docs/ci.md).
 
 ## Troubleshooting
 
@@ -308,6 +320,7 @@ Two continuous integration (CI) setups run the same checks (install, lint, typec
 - [docs/architecture.md](docs/architecture.md): how the pieces fit together and the checkout flow
 - [docs/api.md](docs/api.md): endpoint overview (full detail in Swagger)
 - [docs/warehouse.md](docs/warehouse.md): warehouse model, rules and limitations
+- [docs/ci.md](docs/ci.md): the CI checks and how to require them before merging
 
 ## License
 

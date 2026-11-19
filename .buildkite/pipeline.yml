@@ -1,16 +1,51 @@
+# Each check is its own step so it shows up as its own line on a pull request.
+# Every step starts with the same shared setup (.buildkite/scripts/setup.sh).
+# Steps run in parallel and each uses a fresh agent, so each one runs the setup itself.
 steps:
-  - label: ':white_check_mark: Check the project'
+  - label: ':eslint: Lint (ESLint)'
+    key: lint-eslint
     timeout_in_minutes: 15
-    env:
-      COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
     command: |
-      corepack enable || corepack enable --install-directory "$$HOME/.local/bin"
+      .buildkite/scripts/setup.sh
       export PATH="$$HOME/.local/bin:$$PATH"
-      curl -LsSf https://astral.sh/uv/install.sh | sh
+      pnpm exec turbo run lint --filter='!@shop/etl'
+
+  - label: ':python: Lint (Ruff, ETL)'
+    key: lint-ruff
+    timeout_in_minutes: 10
+    command: |
+      .buildkite/scripts/setup.sh python
       export PATH="$$HOME/.local/bin:$$PATH"
-      cp .env.example .env
-      pnpm install --frozen-lockfile
-      pnpm lint
+      cd apps/etl && uv run ruff check .
+
+  - label: ':sparkles: Format (Prettier)'
+    key: format
+    timeout_in_minutes: 10
+    command: |
+      .buildkite/scripts/setup.sh
+      export PATH="$$HOME/.local/bin:$$PATH"
+      pnpm format:check
+
+  - label: ':typescript: Typecheck'
+    key: typecheck
+    timeout_in_minutes: 15
+    command: |
+      .buildkite/scripts/setup.sh
+      export PATH="$$HOME/.local/bin:$$PATH"
       pnpm typecheck
+
+  - label: ':hammer: Build'
+    key: build
+    timeout_in_minutes: 15
+    command: |
+      .buildkite/scripts/setup.sh
+      export PATH="$$HOME/.local/bin:$$PATH"
       pnpm build
+
+  - label: ':white_check_mark: Unit tests'
+    key: unit-tests
+    timeout_in_minutes: 15
+    command: |
+      .buildkite/scripts/setup.sh
+      export PATH="$$HOME/.local/bin:$$PATH"
       pnpm test

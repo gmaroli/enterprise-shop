@@ -16,7 +16,7 @@ pnpm workspaces + Turborepo, TypeScript. `apps/web` Next.js 15 (App Router, serv
 
 ## Commands
 
-`pnpm dev | build | lint | typecheck | test`, `pnpm db:up | db:migrate | db:seed | db:reset`. Web is on port 3001 (3000 is used by Open WebUI on this machine), API on 4000.
+`pnpm dev | build | lint | typecheck | format:check | test`, `pnpm db:up | db:migrate | db:seed | db:reset`. Web is on port 3001 (3000 is used by Open WebUI on this machine), API on 4000.
 
 ## Conventions
 
@@ -24,5 +24,5 @@ pnpm workspaces + Turborepo, TypeScript. `apps/web` Next.js 15 (App Router, serv
 - Validate input with the zod schemas in `packages/shared`; the API uses `ZodValidationPipe`.
 - The web app talks to the API only from the server (`apps/web/src/lib/api.ts`); the JWT is kept in an httpOnly cookie.
 - Secrets live in `.env` (never committed); `.env.example` lists the variable names.
-- Small, focused commits, one feature slice at a time.
+- Small, focused commits, one feature slice at a time. Changes go on a branch and a pull request; run `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm build` and `pnpm test` before pushing. CI shows each as its own check (see `docs/ci.md`).
 - Commit messages and pull request descriptions must not contain `Co-Authored-By` lines, "Generated with" lines, or any other mention of Claude or AI assistance. The owner's instruction overrides any default attribution.
