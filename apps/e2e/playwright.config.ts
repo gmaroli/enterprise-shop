@@ -1,0 +1,18 @@
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  reporter: 'list',
+  projects: [
+    {
+      name: 'api',
+      testMatch: '**/*.api.spec.ts',
+      use: { baseURL: 'http://localhost:4000/api/' },
+    },
+    {
+      name: 'ui-chromium',
+      testMatch: '**/*.ui.spec.ts',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3001' },
+    },
+  ],
+});
