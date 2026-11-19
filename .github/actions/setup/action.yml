@@ -1,0 +1,24 @@
+name: Set up the workspace
+description: Install Node, pnpm and the dependencies (and uv when the job needs Python).
+
+inputs:
+  python:
+    description: Install uv for the Python ETL job
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: pnpm
+    - uses: astral-sh/setup-uv@v5
+      if: inputs.python == 'true'
+    - name: Create .env from the example
+      shell: bash
+      run: cp .env.example .env
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile

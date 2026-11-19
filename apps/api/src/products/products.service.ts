@@ -12,7 +12,11 @@ export class ProductsService {
   ) {}
 
   /** Adds the price in the shopper's currency; priceCents stays the USD base price. */
-  private withDisplayPrice<T extends { priceCents: number }>(product: T, currency: Currency, rate: number) {
+  private withDisplayPrice<T extends { priceCents: number }>(
+    product: T,
+    currency: Currency,
+    rate: number,
+  ) {
     return {
       ...product,
       displayCurrency: currency,

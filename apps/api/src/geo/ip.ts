@@ -24,5 +24,11 @@ export function isPrivateIp(ip: string): boolean {
     );
   }
   const lower = ip.toLowerCase();
-  return lower === '::1' || lower === '::' || lower.startsWith('fc') || lower.startsWith('fd') || lower.startsWith('fe80');
+  return (
+    lower === '::1' ||
+    lower === '::' ||
+    lower.startsWith('fc') ||
+    lower.startsWith('fd') ||
+    lower.startsWith('fe80')
+  );
 }

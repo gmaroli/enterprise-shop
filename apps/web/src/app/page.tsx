@@ -43,7 +43,9 @@ export default async function CatalogPage({ searchParams }: { searchParams: Sear
           className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
         />
         {category && <input type="hidden" name="category" value={category} />}
-        <button className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Search</button>
+        <button className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
+          Search
+        </button>
       </form>
 
       <div className="mb-6 flex flex-wrap gap-2 text-sm">

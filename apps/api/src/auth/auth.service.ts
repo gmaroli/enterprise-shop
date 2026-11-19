@@ -38,12 +38,26 @@ export class AuthService {
     return this.publicUser(user);
   }
 
-  private async session(user: { id: string; email: string; name: string; role: 'CUSTOMER' | 'ADMIN' }) {
-    const accessToken = await this.jwt.signAsync({ sub: user.id, email: user.email, role: user.role });
+  private async session(user: {
+    id: string;
+    email: string;
+    name: string;
+    role: 'CUSTOMER' | 'ADMIN';
+  }) {
+    const accessToken = await this.jwt.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
     return { accessToken, user: this.publicUser(user) };
   }
 
-  private publicUser(user: { id: string; email: string; name: string; role: 'CUSTOMER' | 'ADMIN' }) {
+  private publicUser(user: {
+    id: string;
+    email: string;
+    name: string;
+    role: 'CUSTOMER' | 'ADMIN';
+  }) {
     return { id: user.id, email: user.email, name: user.name, role: user.role };
   }
 }

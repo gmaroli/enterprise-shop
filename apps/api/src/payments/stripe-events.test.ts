@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { isHandledEvent, outcomeForSession, type SessionFacts } from './stripe-events';
 
 const order = { totalCents: 5000, currency: 'usd' };
-const paid: SessionFacts = { status: 'complete', payment_status: 'paid', amount_total: 5000, currency: 'usd' };
+const paid: SessionFacts = {
+  status: 'complete',
+  payment_status: 'paid',
+  amount_total: 5000,
+  currency: 'usd',
+};
 
 describe('isHandledEvent', () => {
   it('accepts the checkout session events', () => {
@@ -22,11 +27,15 @@ describe('outcomeForSession', () => {
 
   it('waits when the session completed but is not paid yet', () => {
     const unpaid = { ...paid, payment_status: 'unpaid' };
-    expect(outcomeForSession(unpaid, order, 'checkout.session.completed')).toEqual({ kind: 'WAIT' });
+    expect(outcomeForSession(unpaid, order, 'checkout.session.completed')).toEqual({
+      kind: 'WAIT',
+    });
   });
 
   it('treats a later async success as PAID', () => {
-    expect(outcomeForSession(paid, order, 'checkout.session.async_payment_succeeded')).toEqual({ kind: 'PAID' });
+    expect(outcomeForSession(paid, order, 'checkout.session.async_payment_succeeded')).toEqual({
+      kind: 'PAID',
+    });
   });
 
   it('reports an amount mismatch instead of paying', () => {
@@ -41,8 +50,12 @@ describe('outcomeForSession', () => {
 
   it('maps async failure and expiry', () => {
     const open = { status: 'open', payment_status: 'unpaid', amount_total: 5000, currency: 'usd' };
-    expect(outcomeForSession(open, order, 'checkout.session.async_payment_failed')).toEqual({ kind: 'FAILED' });
-    expect(outcomeForSession({ ...open, status: 'expired' }, order, 'checkout.session.expired')).toEqual({
+    expect(outcomeForSession(open, order, 'checkout.session.async_payment_failed')).toEqual({
+      kind: 'FAILED',
+    });
+    expect(
+      outcomeForSession({ ...open, status: 'expired' }, order, 'checkout.session.expired'),
+    ).toEqual({
       kind: 'CANCELLED',
     });
   });

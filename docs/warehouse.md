@@ -9,6 +9,7 @@ app database (shop)  ──extract──>  staging  ──transform──>  dw (
 ```
 
 ## Run it
+
 ```bash
 pnpm db:up
 pnpm warehouse:init      # once: creates the database, schemas, tables, views
@@ -16,33 +17,37 @@ pnpm warehouse:run       # incremental load (changes since the last successful b
 pnpm warehouse:full      # reload everything, ignoring watermarks
 pnpm warehouse:status    # recent batches and row counts
 ```
+
 Optional demo history (about 220 orders over 90 days, 12 extra customers, priced in the shipping country's currency): `pnpm db:seed:demo`. It replaces only its own `demo_` rows and stamps them with the current time so the next incremental load picks them up; run `pnpm warehouse:full` after changing demo data.
 
 Connect with any Postgres client using the `WAREHOUSE_URL` value from your `.env` (see `.env.example` for the format).
 To run on a schedule, a cron entry such as `*/15 * * * * cd /path/to/enterprise-shop && pnpm warehouse:run` is enough for local use.
 
 ## Schemas
-| Schema | Contents |
-| --- | --- |
-| `etl` | `batch_log` (one row per run), `watermark` (last source `updatedAt` loaded per table) |
-| `staging` | `stg_user`, `stg_product`, `stg_order`, `stg_order_item`: latest copy of each source row plus `_batch_id`, `_loaded_at`, `_deleted_at` |
-| `dw` | Dimensions `dim_date`, `dim_customer`, `dim_product`; facts `fact_orders`, `fact_order_lines` |
+
+| Schema      | Contents                                                                                                                                                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `etl`       | `batch_log` (one row per run), `watermark` (last source `updatedAt` loaded per table)                                                                                                                                      |
+| `staging`   | `stg_user`, `stg_product`, `stg_order`, `stg_order_item`: latest copy of each source row plus `_batch_id`, `_loaded_at`, `_deleted_at`                                                                                     |
+| `dw`        | Dimensions `dim_date`, `dim_customer`, `dim_product`; facts `fact_orders`, `fact_order_lines`                                                                                                                              |
 | `reporting` | Views for sales by day, product, category and month, customers, order status, coupons (including shipping waived), sales by currency, ETL runs, and `v_data_dictionary`. Money columns are in USD and end in `_usd_cents`. |
 
 ## Model
-| Table | Grain | Key notes |
-| --- | --- | --- |
-| `dim_date` | one calendar day, 2024-01-01 to 2030-12-31 | `date_key` is `yyyymmdd` |
-| `dim_customer` | one row per customer | Type 1: values are overwritten; `is_deleted` set if removed in the source |
-| `dim_product` | one row per product **version** | Type 2: tracked attributes are sku, name, description, category, price, currency, active (stock is not tracked); `valid_from`, `valid_to`, `is_current` |
-| `fact_orders` | one row per order | all statuses; date keys for created and paid; amounts in the order currency and in USD; `fx_rate`; `shipping_waived_cents` |
-| `fact_order_lines` | one row per order line | product version valid at order time; order-level amounts allocated to lines |
+
+| Table              | Grain                                      | Key notes                                                                                                                                               |
+| ------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dim_date`         | one calendar day, 2024-01-01 to 2030-12-31 | `date_key` is `yyyymmdd`                                                                                                                                |
+| `dim_customer`     | one row per customer                       | Type 1: values are overwritten; `is_deleted` set if removed in the source                                                                               |
+| `dim_product`      | one row per product **version**            | Type 2: tracked attributes are sku, name, description, category, price, currency, active (stock is not tracked); `valid_from`, `valid_to`, `is_current` |
+| `fact_orders`      | one row per order                          | all statuses; date keys for created and paid; amounts in the order currency and in USD; `fx_rate`; `shipping_waived_cents`                              |
+| `fact_order_lines` | one row per order line                     | product version valid at order time; order-level amounts allocated to lines                                                                             |
 
 `customer_key = -1` and `product_key = -1` are "Unknown" members used when a lookup fails.
 
 `dw.ref_pricing_rule` holds the business constants the transforms need (flat shipping fee, free-shipping threshold, tax rate). It must be kept in step with `packages/shared/src/pricing.ts`, because the warehouse does not read the app's code.
 
 ## Business rules
+
 - **Dates** are UTC calendar dates. Source timestamps are stored in UTC.
 - **Paid** means order status `PAID`. Reporting views count only paid orders, dated by payment date, except `v_order_status_summary` (all statuses) and the per-customer unsuccessful-order count.
 - **Money** stays in integer cents. Orders can be in USD, AUD, GBP, CAD or EUR. Amounts without `_usd` are in the order's own `currency`; `*_usd_cents` columns hold the same amounts in USD, the reporting currency.
@@ -56,6 +61,7 @@ To run on a schedule, a cron entry such as `*/15 * * * * cd /path/to/enterprise-
 - **Atomic batches:** staging, dimensions, facts and watermarks are written in one transaction; a failed batch leaves no partial data and is recorded in `etl.batch_log` with its error.
 
 ## Integrity and structure
+
 `pnpm warehouse:init` is repeatable and applies, in order: tables, constraints and indexes, the data dictionary, and views.
 
 - **Constraints:** NOT NULL on keys and measures; domain checks (status values, roles, currency format, two-letter country, non-negative amounts, positive quantities); foreign keys from facts to dimensions and from order lines to orders (deleting an order removes its lines); a unique "one current version per product" rule; a check that `is_current` agrees with `valid_to`; and an exclusion constraint so a product's versions can never overlap in time.
@@ -66,6 +72,7 @@ To run on a schedule, a cron entry such as `*/15 * * * * cd /path/to/enterprise-
 - **Data dictionary:** every table and column has a description. Query `reporting.v_data_dictionary`, or `\d+` in psql.
 
 ## Known limitations
+
 - Product history is captured when the job runs. Two changes to a product between runs produce one new version, not two.
 - Delete detection compares complete id lists, which is fine at this size but would need a different approach for very large tables.
 - No late-arriving dimension handling and no scheduler or alerting; runs are started by hand or cron.

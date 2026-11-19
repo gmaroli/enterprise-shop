@@ -4,7 +4,11 @@ import { api } from '@/lib/api';
 import { requireAdmin } from '@/lib/session';
 import type { ExchangeRate } from '@/lib/types';
 
-export default async function AdminRatesPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function AdminRatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { error } = await searchParams;
   await requireAdmin();
   const rates = await api<ExchangeRate[]>('/rates');
@@ -13,8 +17,9 @@ export default async function AdminRatesPage({ searchParams }: { searchParams: P
     <div>
       <h1 className="mb-2 text-2xl font-bold">Exchange rates</h1>
       <p className="mb-6 text-sm text-slate-600">
-        Units of each currency per 1 USD. Product prices are stored in USD and converted with these rates; each order keeps the
-        rate it was charged at. USD is the base currency and cannot be changed.
+        Units of each currency per 1 USD. Product prices are stored in USD and converted with these
+        rates; each order keeps the rate it was charged at. USD is the base currency and cannot be
+        changed.
       </p>
       <ErrorBanner message={error} />
       <table className="w-full max-w-2xl overflow-hidden rounded-lg border border-slate-200 bg-white text-left text-sm">
@@ -35,7 +40,11 @@ export default async function AdminRatesPage({ searchParams }: { searchParams: P
                 {r.currency === 'USD' ? (
                   r.perUsd
                 ) : (
-                  <form action={saveRateAction} id={`rate-${r.currency}`} className="flex items-center gap-2">
+                  <form
+                    action={saveRateAction}
+                    id={`rate-${r.currency}`}
+                    className="flex items-center gap-2"
+                  >
                     <input type="hidden" name="currency" value={r.currency} />
                     <input
                       name="perUsd"

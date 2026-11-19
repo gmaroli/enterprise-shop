@@ -35,7 +35,10 @@ export default async function AdminOrdersPage() {
               <td className="px-4 py-2">
                 <StatusBadge status={o.status} />
               </td>
-              <td className="px-4 py-2 text-right">{formatMoney(o.totalCents, o.currency)} <span className="text-xs text-slate-500">{o.currency.toUpperCase()}</span></td>
+              <td className="px-4 py-2 text-right">
+                {formatMoney(o.totalCents, o.currency)}{' '}
+                <span className="text-xs text-slate-500">{o.currency.toUpperCase()}</span>
+              </td>
             </tr>
           ))}
         </tbody>

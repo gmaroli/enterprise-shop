@@ -9,7 +9,12 @@ export class ApiError extends Error {
   }
 }
 
-type Options = { method?: string; body?: unknown; token?: string | null; headers?: Record<string, string> };
+type Options = {
+  method?: string;
+  body?: unknown;
+  token?: string | null;
+  headers?: Record<string, string>;
+};
 
 function messageFrom(data: unknown, fallback: string): string {
   if (data && typeof data === 'object') {

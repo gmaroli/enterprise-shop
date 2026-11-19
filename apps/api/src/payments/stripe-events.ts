@@ -20,8 +20,7 @@ export type SessionFacts = {
 export type OrderFacts = { totalCents: number; currency: string };
 
 export type SessionOutcome =
-  | { kind: 'PAID' | 'FAILED' | 'CANCELLED' | 'WAIT' }
-  | { kind: 'MISMATCH'; reason: string };
+  { kind: 'PAID' | 'FAILED' | 'CANCELLED' | 'WAIT' } | { kind: 'MISMATCH'; reason: string };
 
 /**
  * Decides what a Checkout Session means for an order. Used for webhook events and for

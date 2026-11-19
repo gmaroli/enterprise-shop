@@ -23,8 +23,34 @@ const rand = mulberry32(42);
 const int = (min: number, max: number) => min + Math.floor(rand() * (max - min + 1));
 const pick = <T>(items: readonly T[]): T => items[int(0, items.length - 1)]!;
 
-const FIRST = ['Ava', 'Ben', 'Chloe', 'Dan', 'Eva', 'Finn', 'Grace', 'Hugo', 'Isla', 'Jack', 'Kara', 'Leo'];
-const LAST = ['Nguyen', 'Smith', 'Patel', 'Jones', 'Garcia', 'Kim', 'Brown', 'Lopez', 'Wilson', 'Chen', 'Taylor', 'Singh'];
+const FIRST = [
+  'Ava',
+  'Ben',
+  'Chloe',
+  'Dan',
+  'Eva',
+  'Finn',
+  'Grace',
+  'Hugo',
+  'Isla',
+  'Jack',
+  'Kara',
+  'Leo',
+];
+const LAST = [
+  'Nguyen',
+  'Smith',
+  'Patel',
+  'Jones',
+  'Garcia',
+  'Kim',
+  'Brown',
+  'Lopez',
+  'Wilson',
+  'Chen',
+  'Taylor',
+  'Singh',
+];
 const PLACES = [
   { country: 'US', city: 'Austin', postal: '78701' },
   { country: 'AU', city: 'Sydney', postal: '2000' },
@@ -58,11 +84,25 @@ async function main() {
     createdAt: new Date(now - int(60, 120) * day),
   }));
   for (const c of customers) {
-    await prisma.user.upsert({ where: { id: c.id }, update: {}, create: { ...c, updatedAt: c.createdAt } });
+    await prisma.user.upsert({
+      where: { id: c.id },
+      update: {},
+      create: { ...c, updatedAt: c.createdAt },
+    });
   }
 
-  const orders: Parameters<typeof prisma.order.createMany>[0] extends { data: infer D } ? D : never = [];
-  const items: { id: string; orderId: string; productId: string; sku: string; name: string; unitPriceCents: number; quantity: number }[] = [];
+  const orders: Parameters<typeof prisma.order.createMany>[0] extends { data: infer D }
+    ? D
+    : never = [];
+  const items: {
+    id: string;
+    orderId: string;
+    productId: string;
+    sku: string;
+    name: string;
+    unitPriceCents: number;
+    quantity: number;
+  }[] = [];
 
   for (let n = 1; n <= 220; n++) {
     const id = `demo_${String(n).padStart(4, '0')}`;
@@ -71,8 +111,10 @@ async function main() {
     const createdAt = new Date(now - int(0, 90 * 24 * 60) * 60 * 1000);
 
     const roll = rand();
-    const status: OrderStatus = roll < 0.8 ? 'PAID' : roll < 0.88 ? 'PENDING' : roll < 0.95 ? 'CANCELLED' : 'FAILED';
-    const paidAt = status === 'PAID' ? new Date(createdAt.getTime() + int(1, 30) * 60 * 1000) : null;
+    const status: OrderStatus =
+      roll < 0.8 ? 'PAID' : roll < 0.88 ? 'PENDING' : roll < 0.95 ? 'CANCELLED' : 'FAILED';
+    const paidAt =
+      status === 'PAID' ? new Date(createdAt.getTime() + int(1, 30) * 60 * 1000) : null;
     // Rows are stamped when seeded so incremental warehouse loads pick up regenerated orders.
     const updatedAt = seededAt;
 
@@ -85,7 +127,15 @@ async function main() {
     while (chosen.size < lineCount) chosen.add(pick(products).id);
     const lines = [...chosen].map((productId, idx) => {
       const p = products.find((x) => x.id === productId)!;
-      return { id: `${id}_${idx + 1}`, orderId: id, productId, sku: p.sku, name: p.name, unitPriceCents: convertFromUsd(p.priceCents, rate), quantity: int(1, 3) };
+      return {
+        id: `${id}_${idx + 1}`,
+        orderId: id,
+        productId,
+        sku: p.sku,
+        name: p.name,
+        unitPriceCents: convertFromUsd(p.priceCents, rate),
+        quantity: int(1, 3),
+      };
     });
 
     const coupon = rand() < 0.25 ? pick(COUPONS) : null;
@@ -117,7 +167,9 @@ async function main() {
 
   await prisma.order.createMany({ data: orders });
   await prisma.orderItem.createMany({ data: items });
-  console.log(`Demo data: ${customers.length} customers, ${orders.length} orders, ${items.length} order lines.`);
+  console.log(
+    `Demo data: ${customers.length} customers, ${orders.length} orders, ${items.length} order lines.`,
+  );
 }
 
 main()

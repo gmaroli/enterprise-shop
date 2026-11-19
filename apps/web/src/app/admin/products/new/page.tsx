@@ -2,7 +2,11 @@ import { ErrorBanner } from '@/components/ui';
 import { ProductForm } from '@/components/ProductForm';
 import { requireAdmin } from '@/lib/session';
 
-export default async function NewProductPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function NewProductPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   await requireAdmin();
   const { error } = await searchParams;
   return (
