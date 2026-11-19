@@ -2,6 +2,12 @@
   "name": "@shop/e2e",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:api": "playwright test --project=api",
+    "test:ui": "playwright test --project=ui-chromium",
+    "report": "playwright show-report"
+  },
   "devDependencies": {
     "@playwright/test": "^1.65.1"
   }
