@@ -23,7 +23,10 @@
     "warehouse:run": "pnpm --filter @shop/etl warehouse:run",
     "warehouse:full": "pnpm --filter @shop/etl warehouse:full",
     "warehouse:status": "pnpm --filter @shop/etl warehouse:status",
-    "stripe:listen": "mkdir -p .stripe && dotenv -e .env -- sh -c 'STRIPE_API_KEY=$STRIPE_SECRET_KEY STRIPE_CLI_TELEMETRY_OPTOUT=1 stripe listen --config .stripe/config.toml --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired --forward-to localhost:4000/api/webhooks/stripe'"
+    "stripe:listen": "mkdir -p .stripe && dotenv -e .env -- sh -c 'STRIPE_API_KEY=$STRIPE_SECRET_KEY STRIPE_CLI_TELEMETRY_OPTOUT=1 stripe listen --config .stripe/config.toml --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired --forward-to localhost:4000/api/webhooks/stripe'",
+    "test:e2e": "pnpm --filter @shop/e2e test:e2e",
+    "test:api": "pnpm --filter @shop/e2e test:api",
+    "test:ui": "pnpm --filter @shop/e2e test:ui"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
