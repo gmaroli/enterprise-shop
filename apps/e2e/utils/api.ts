@@ -89,3 +89,18 @@ export async function getCart(
   }
   return response.json();
 }
+
+export async function findAnyOrderId(request: APIRequestContext, adminToken: string) {
+  const response = await request.get('orders', {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    params: { all: 'true' },
+  });
+  if (!response.ok()) {
+    throw new Error(`Listing orders failed: HTTP ${response.status()} ${await response.text()}`);
+  }
+  const orders = await response.json();
+  if (!orders.length) {
+    throw new Error('No orders found. Run pnpm db:seed:demo to create demo orders.');
+  }
+  return orders[0].id as string;
+}
