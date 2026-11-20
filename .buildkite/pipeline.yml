@@ -29,3 +29,12 @@ steps:
     command: |
       source .buildkite/scripts/setup.sh
       pnpm test
+
+  - label: ':whale: Docker check'
+    key: docker-check
+    timeout_in_minutes: 5
+    command: |
+      docker --version
+      docker compose version
+      nproc
+      free -m
