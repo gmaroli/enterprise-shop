@@ -1,7 +1,6 @@
 import {
   BadGatewayException,
   BadRequestException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -172,8 +171,9 @@ export class OrdersService {
 
   async get(user: AuthUser, id: string): Promise<OrderWithItems> {
     const order = await this.prisma.order.findUnique({ where: { id }, include: orderInclude });
-    if (!order) throw new NotFoundException('Order not found');
-    if (!canViewOrder(user, order)) throw new ForbiddenException('Not your order');
+    // Same answer for a missing order and for someone else's order, so a caller cannot
+    // use the status code to find out which order IDs exist.
+    if (!order || !canViewOrder(user, order)) throw new NotFoundException('Order not found');
     return order;
   }
 
