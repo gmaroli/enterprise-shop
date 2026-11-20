@@ -1,47 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { admin } from '../../utils/config';
-import { generateTestPassword } from '../../utils/test-data';
+import { login, createProduct, registerCustomer } from '../../utils/api';
 
 test.describe('cart totals api', () => {
   test('USD cart, one US$50.00 item, no coupon', async ({ request }) => {
-    const testPassword = generateTestPassword();
     // Arrange: an admin creates a product that costs US$50.00
-    const adminLogin = await request.post('auth/login', {
-      data: { email: admin.email, password: admin.password },
-    });
-    const adminToken = (await adminLogin.json()).accessToken;
-
-    const sku = `QA-${Date.now()}`;
-    const created = await request.post('admin/products', {
-      headers: { Authorization: `Bearer ${adminToken}` },
-      data: {
-        sku,
-        name: `QA test product ${sku}`,
-        description: 'Created by an automated test',
-        priceCents: 5000,
-        stock: 100,
-        category: 'Accessories',
-      },
-    });
-    const product = await created.json();
-
-    // Arrange: a brand-new customer with an empty cart
-    const register = await request.post('auth/register', {
-      data: {
-        email: `qa-${Date.now()}@shop.test`,
-        password: testPassword,
-        name: 'QA Customer',
-      },
-    });
-    const customerToken = (await register.json()).accessToken;
-    const customerAuth = { Authorization: `Bearer ${customerToken}` };
+    const adminToken = await login(request, admin);
+    const product = await createProduct(request, adminToken, 5000);
+    const { auth } = await registerCustomer(request);
 
     // Act: add one product to the cart, then read the cart
     await request.post('cart/items', {
-      headers: customerAuth,
+      headers: auth,
       data: { productId: product.id, quantity: 1 },
     });
-    const cartResponse = await request.get('cart', { headers: customerAuth });
+    const cartResponse = await request.get('cart', { headers: auth });
     expect(cartResponse.status()).toBe(200);
     const cart = await cartResponse.json();
 

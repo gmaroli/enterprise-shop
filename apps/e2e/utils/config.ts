@@ -8,12 +8,14 @@ function requireEnv(name: string): string {
   return value;
 }
 
-export const admin = {
+export type Credentials = { email: string; password: string };
+
+export const admin: Credentials = {
   email: requireEnv('E2E_ADMIN_EMAIL'),
   password: requireEnv('E2E_ADMIN_PASSWORD'),
 };
 
-export const customer = {
+export const customer: Credentials = {
   email: requireEnv('E2E_CUSTOMER_EMAIL'),
   password: requireEnv('E2E_CUSTOMER_PASSWORD'),
 };

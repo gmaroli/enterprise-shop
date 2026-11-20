@@ -26,7 +26,8 @@
     "stripe:listen": "mkdir -p .stripe && dotenv -e .env -- sh -c 'STRIPE_API_KEY=$STRIPE_SECRET_KEY STRIPE_CLI_TELEMETRY_OPTOUT=1 stripe listen --config .stripe/config.toml --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired --forward-to localhost:4000/api/webhooks/stripe'",
     "test:e2e": "pnpm --filter @shop/e2e test:e2e",
     "test:api": "pnpm --filter @shop/e2e test:api",
-    "test:ui": "pnpm --filter @shop/e2e test:ui"
+    "test:ui": "pnpm --filter @shop/e2e test:ui",
+    "check:e2e": "pnpm exec prettier --check apps/e2e && pnpm --filter @shop/e2e typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
