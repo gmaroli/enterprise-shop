@@ -1,10 +1,11 @@
-import { test, expect, request } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { admin } from '../../utils/config';
 
 test.describe('admin products api', () => {
   test('an admin can create a product', async ({ request }) => {
-    //1.Login as a seeded admin to get a token
+    // 1. Login as a seeded admin to get a token
     const login = await request.post('auth/login', {
-      data: { email: 'admin@shop.test', password: 'Admin123!' },
+      data: { email: admin.email, password: admin.password },
     });
     expect(login.status()).toBe(200);
     const { accessToken } = await login.json();

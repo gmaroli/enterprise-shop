@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { admin } from '../../utils/config';
+import { generateTestPassword } from '../../utils/test-data';
 
-test.describe('cart totals API', () => {
+test.describe('cart totals api', () => {
   test('USD cart, one US$50.00 item, no coupon', async ({ request }) => {
+    const testPassword = generateTestPassword();
     // Arrange: an admin creates a product that costs US$50.00
     const adminLogin = await request.post('auth/login', {
-      data: { email: 'admin@shop.test', password: 'Admin123!' },
+      data: { email: admin.email, password: admin.password },
     });
     const adminToken = (await adminLogin.json()).accessToken;
 
@@ -24,7 +27,11 @@ test.describe('cart totals API', () => {
 
     // Arrange: a brand-new customer with an empty cart
     const register = await request.post('auth/register', {
-      data: { email: `qa-${Date.now()}@shop.test`, password: 'Password123!', name: 'QA Customer' },
+      data: {
+        email: `qa-${Date.now()}@shop.test`,
+        password: testPassword,
+        name: 'QA Customer',
+      },
     });
     const customerToken = (await register.json()).accessToken;
     const customerAuth = { Authorization: `Bearer ${customerToken}` };
