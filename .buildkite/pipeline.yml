@@ -29,3 +29,14 @@ steps:
     command: |
       source .buildkite/scripts/setup.sh
       pnpm test
+
+  - label: ':test_tube: API tests'
+    key: api-tests
+    notify:
+      - github_commit_status:
+          context: 'buildkite/API tests'
+    timeout_in_minutes: 15
+    env:
+      E2E_ADMIN_EMAIL: admin@shop.test
+      E2E_CUSTOMER_EMAIL: customer@shop.test
+    command: bash .buildkite/scripts/api-tests.sh
