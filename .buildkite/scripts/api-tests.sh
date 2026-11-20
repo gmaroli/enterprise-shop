@@ -7,6 +7,7 @@ export E2E_ADMIN_PASSWORD="$(buildkite-agent secret get E2E_ADMIN_PASSWORD)"
 export E2E_CUSTOMER_PASSWORD="$(buildkite-agent secret get E2E_CUSTOMER_PASSWORD)"
 
 docker compose -f infra/docker-compose.yml up -d --wait
+pnpm --filter @shop/db generate
 pnpm --filter @shop/db migrate:deploy
 pnpm db:seed
 pnpm db:seed:demo
