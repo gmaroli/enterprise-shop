@@ -1,6 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { addToCart, createProduct, registerCustomer, getCart, login } from '../../utils/api';
-import { admin } from '../../utils/config';
+import { test, expect } from '../../utils/fixtures';
+import { addToCart, createProduct, getCart } from '../../utils/api';
 
 type PricingCase = {
   name: string;
@@ -68,15 +67,13 @@ const cases: PricingCase[] = [
   },
 ];
 
-test.describe('cart pricing api (USD)', () => {
+test.describe('cart pricing api (USD)', { tag: ['@pricing', '@regression'] }, () => {
   for (const c of cases) {
-    test(c.name, async ({ request }) => {
-      const adminToken = await login(request, admin);
+    test(c.name, async ({ request, adminToken, shopper }) => {
       const product = await createProduct(request, adminToken, c.unitPriceCents);
-      const { auth } = await registerCustomer(request);
 
-      await addToCart(request, auth, product.id, c.quantity);
-      const cart = await getCart(request, auth, c.coupon);
+      await addToCart(request, shopper.auth, product.id, c.quantity);
+      const cart = await getCart(request, shopper.auth, c.coupon);
 
       expect(cart.totals).toMatchObject(c.expected);
     });

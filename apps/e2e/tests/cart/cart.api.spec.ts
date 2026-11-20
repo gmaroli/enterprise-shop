@@ -1,13 +1,11 @@
-import { test, expect } from '@playwright/test';
-import { admin } from '../../utils/config';
-import { login, createProduct, registerCustomer } from '../../utils/api';
+import { test, expect } from '../../utils/fixtures';
+import { createProduct } from '../../utils/api';
 
 test.describe('cart totals api', () => {
-  test('USD cart, one US$50.00 item, no coupon', async ({ request }) => {
+  test('USD cart, one US$50.00 item, no coupon', async ({ request, adminToken, shopper }) => {
     // Arrange: an admin creates a product that costs US$50.00
-    const adminToken = await login(request, admin);
     const product = await createProduct(request, adminToken, 5000);
-    const { auth } = await registerCustomer(request);
+    const auth = shopper.auth;
 
     // Act: add one product to the cart, then read the cart
     await request.post('cart/items', {
