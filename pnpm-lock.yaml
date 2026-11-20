@@ -266,6 +266,18 @@ importers:
       '@playwright/test':
         specifier: ^1.65.1
         version: 1.65.1
+      '@shop/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      dotenv:
+        specifier: ^18.0.10
+        version: 18.0.10
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
 
   apps/etl: {}
 
@@ -279,7 +291,7 @@ importers:
         version: link:../../packages/shared
       next:
         specifier: ^15.5.29
-        version: 15.5.29(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        version: 15.5.29(@playwright/test@1.65.1)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: ^19.1.0
         version: 19.3.1
@@ -2009,6 +2021,11 @@ packages:
   dotenv@17.4.1:
     resolution: {integrity: sha512-k8DaKGP6r1G30Lx8V4+pCsLzKr8vLmV2paqEj1Y55GdAgJuIqpRp5FfajGF8KtwMxCz9qJc6wUIJnm053d/WCw==}
     engines: {node: '>=12'}
+
+  dotenv@18.0.10:
+    resolution: {integrity: sha512-89FAA1xchzK2mxVWdr5F/0rldwiueXs6zJM86rO66EzekR1iBdiXRthyG+m5GvkJaFH3C2LESzamTkgndmLT2A==}
+    engines: {node: '>=12'}
+    hasBin: true
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -4862,6 +4879,8 @@ snapshots:
 
   dotenv@17.4.1: {}
 
+  dotenv@18.0.10: {}
+
   dunder-proto@1.0.1:
     dependencies:
       call-bind-apply-helpers: 1.0.2
@@ -5497,7 +5516,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  next@15.5.29(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  next@15.5.29(@playwright/test@1.65.1)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@next/env': 15.5.29
       '@swc/helpers': 0.5.15
@@ -5515,6 +5534,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 15.5.29
       '@next/swc-win32-arm64-msvc': 15.5.29
       '@next/swc-win32-x64-msvc': 15.5.29
+      '@playwright/test': 1.65.1
       sharp: 0.35.5(@types/node@22.20.5)
     transitivePeerDependencies:
       - '@babel/core'
