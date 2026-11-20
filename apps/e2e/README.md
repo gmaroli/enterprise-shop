@@ -29,17 +29,17 @@ pnpm --filter @shop/e2e exec playwright install chromium
 
 All commands run from the repo root.
 
-| What I want                     | Command                                      |
-| ------------------------------- | -------------------------------------------- |
-| All API tests                   | `pnpm test:api`                              |
-| Everything (API and UI)         | `pnpm test:e2e`                              |
-| Only the quick smoke checks     | `pnpm test:api --grep @smoke`                |
-| Only one area                   | `pnpm test:api --grep @pricing`              |
-| One test by name                | `pnpm test:api -g "wrong password"`          |
-| Step through a test (debugger)  | `pnpm test:api --debug`                      |
-| Watch tests run in the UI mode  | `pnpm test:api --ui`                         |
-| Open the last HTML report       | `pnpm --filter @shop/e2e report`             |
-| Format and type check the tests | `pnpm check:e2e`                             |
+| What I want                     | Command                             |
+| ------------------------------- | ----------------------------------- |
+| All API tests                   | `pnpm test:api`                     |
+| Everything (API and UI)         | `pnpm test:e2e`                     |
+| Only the quick smoke checks     | `pnpm test:api --grep @smoke`       |
+| Only one area                   | `pnpm test:api --grep @pricing`     |
+| One test by name                | `pnpm test:api -g "wrong password"` |
+| Step through a test (debugger)  | `pnpm test:api --debug`             |
+| Watch tests run in the UI mode  | `pnpm test:api --ui`                |
+| Open the last HTML report       | `pnpm --filter @shop/e2e report`    |
+| Format and type check the tests | `pnpm check:e2e`                    |
 
 If a test fails, a trace is saved for it. The HTML report links to it, and it shows every request and response.
 
@@ -66,12 +66,12 @@ Test files end in `.api.spec.ts` or `.ui.spec.ts`. The suffix decides which Play
 
 ## Tags
 
-| Tag           | Meaning                                                    |
-| ------------- | ---------------------------------------------------------- |
-| `@smoke`      | The quickest, most important checks. If these fail, stop.  |
-| `@regression` | The wider suite that protects existing behaviour.          |
-| `@pricing`    | Price, shipping, discount and tax calculations.            |
-| `@security`   | Access control: who may call which endpoint.               |
+| Tag           | Meaning                                                   |
+| ------------- | --------------------------------------------------------- |
+| `@smoke`      | The quickest, most important checks. If these fail, stop. |
+| `@regression` | The wider suite that protects existing behaviour.         |
+| `@pricing`    | Price, shipping, discount and tax calculations.           |
+| `@security`   | Access control: who may call which endpoint.              |
 
 ## Adding a test
 
