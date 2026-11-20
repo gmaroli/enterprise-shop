@@ -40,7 +40,7 @@ async function headersFor(request: APIRequestContext, caller: Caller) {
   return auth;
 }
 
-test.describe('access control api', () => {
+test.describe('access control api', { tag: ['@security', '@regression'] }, () => {
   for (const c of cases) {
     for (const caller of callers) {
       test(`${c.method} ${c.path} as ${caller} gives ${c.expected[caller]}`, async ({

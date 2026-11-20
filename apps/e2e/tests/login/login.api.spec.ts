@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { customer } from '../../utils/config';
 
 test.describe('login api', () => {
-  test('valid credentials return a token and the user', async ({ request }) => {
+  test('valid credentials return a token and the user', { tag: '@smoke' }, async ({ request }) => {
     const response = await request.post('auth/login', {
       data: { email: customer.email, password: customer.password },
     });
