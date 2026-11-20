@@ -1,6 +1,7 @@
 import type { APIRequestContext } from '@playwright/test';
 import { generateTestPassword } from './test-data';
 import type { Credentials } from './config';
+import { randomUUID } from 'node:crypto';
 
 export async function login(request: APIRequestContext, credentials: Credentials): Promise<string> {
   const response = await request.post('auth/login', {
@@ -18,7 +19,7 @@ export async function createProduct(
   adminToken: string,
   priceCents: number,
 ) {
-  const sku = `QA-${Date.now()}`;
+  const sku = `QA-${randomUUID().replace(/-/g, '')}`;
   const response = await request.post('admin/products', {
     headers: { Authorization: `Bearer ${adminToken}` },
     data: {
@@ -39,7 +40,7 @@ export async function createProduct(
 }
 
 export async function registerCustomer(request: APIRequestContext) {
-  const email = `qa-${Date.now()}@shop.test`;
+  const email = `qa-${randomUUID().replace(/-/g, '').slice(0, 15)}@shop.test`;
   const response = await request.post('auth/register', {
     data: {
       email,
@@ -57,4 +58,34 @@ export async function registerCustomer(request: APIRequestContext) {
     token: body.accessToken as string,
     auth: { Authorization: `Bearer ${body.accessToken}` },
   };
+}
+
+export async function addToCart(
+  request: APIRequestContext,
+  auth: Record<string, string>,
+  productId: string,
+  quantity: number,
+) {
+  const response = await request.post('cart/items', {
+    headers: auth,
+    data: { productId, quantity },
+  });
+  if (!response.ok()) {
+    throw new Error(`Adding to cart failed: HTTP ${response.status()} ${await response.text()}`);
+  }
+}
+
+export async function getCart(
+  request: APIRequestContext,
+  auth: Record<string, string>,
+  coupon?: string,
+) {
+  const response = await request.get('cart', {
+    headers: auth,
+    params: coupon ? { coupon } : undefined,
+  });
+  if (!response.ok()) {
+    throw new Error(`Reading the cart failed: HTTP ${response.status()} ${await response.text()}`);
+  }
+  return response.json();
 }
