@@ -46,3 +46,28 @@ test.describe('order access api', { tag: ['@security', '@regression'] }, () => {
     expect(await someoneElses.json()).toEqual(await missing.json());
   });
 });
+
+test.describe('order sync api', { tag: ['@security', '@regression'] }, () => {
+  test('anonymous caller cannot sync an order', async ({ request, adminToken }) => {
+    const orderId = await findAnyOrderId(request, adminToken);
+
+    const response = await request.post(`orders/${orderId}/sync`);
+
+    expect(response.status()).toBe(401);
+  });
+
+  test('a shopper cannot tell that someone else’s order exists', async ({
+    request,
+    adminToken,
+    shopper,
+  }) => {
+    const orderId = await findAnyOrderId(request, adminToken);
+
+    const someoneElses = await request.post(`orders/${orderId}/sync`, { headers: shopper.auth });
+    const missing = await request.post('orders/does-not-exist/sync', { headers: shopper.auth });
+
+    expect(someoneElses.status()).toBe(404);
+    expect(someoneElses.status()).toBe(missing.status());
+    expect(await someoneElses.json()).toEqual(await missing.json());
+  });
+});
