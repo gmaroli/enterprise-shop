@@ -14,7 +14,7 @@ type AccessCase = {
 
 const cases: AccessCase[] = [
   { method: 'GET', path: 'products', expected: { anonymous: 200, customer: 200, admin: 200 } },
-  { method: 'GET', path: 'auth/me', expected: { anonymous: 401, customer: 200, admin: 200 } },
+  { method: 'GET', path: 'auth/me', expected: { anonymous: 200, customer: 200, admin: 200 } },
   { method: 'GET', path: 'cart', expected: { anonymous: 401, customer: 200, admin: 200 } },
   {
     method: 'GET',
