@@ -44,3 +44,18 @@ steps:
       E2E_ADMIN_EMAIL: admin@shop.test
       E2E_CUSTOMER_EMAIL: customer@shop.test
     command: bash .buildkite/scripts/api-tests.sh
+  - label: ':performing_arts: UI tests'
+    key: ui-tests
+    notify:
+      - github_commit_status:
+          context: 'buildkite/UI tests'
+    timeout_in_minutes: 20
+    env:
+      E2E_ADMIN_EMAIL: admin@shop.test
+      E2E_CUSTOMER_EMAIL: customer@shop.test
+    artifact_paths:
+      - 'apps/e2e/playwright-report/**/*'
+      - 'apps/e2e/test-results/**/*'
+      - 'api.log'
+      - 'web.log'
+    command: bash .buildkite/scripts/ui-tests.sh
