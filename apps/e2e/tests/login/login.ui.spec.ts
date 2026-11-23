@@ -19,6 +19,6 @@ test('entering incorrect password, throws error and user is not able to login', 
   await page.getByLabel('Password').fill('invalid-password');
   await page.getByRole('button', { name: 'Log in' }).click();
 
-  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'Invalid credentials' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Log out' })).toHaveCount(0);
 });
