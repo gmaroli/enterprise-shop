@@ -40,23 +40,24 @@ export async function createProduct(
 }
 
 export async function registerCustomer(request: APIRequestContext) {
-  const email = `qa-${randomUUID().replace(/-/g, '').slice(0, 15)}@shop.test`;
+  const credentials = {
+    email: `qa-${randomUUID().replace(/-/g, '').slice(0, 15)}@shop.test`,
+    password: generateTestPassword(),
+  };
+
   const response = await request.post('auth/register', {
-    data: {
-      email,
-      password: generateTestPassword(),
-      name: 'QA Customer',
-    },
+    data: { ...credentials, name: 'QA Customer' },
   });
   if (!response.ok()) {
     throw new Error(
-      `Registering ${email} failed: HTTP ${response.status()} ${await response.text()}`,
+      `Registering ${credentials.email} failed: HTTP ${response.status()} ${await response.text()}`,
     );
   }
   const body = await response.json();
   return {
     token: body.accessToken as string,
     auth: { Authorization: `Bearer ${body.accessToken}` },
+    credentials,
   };
 }
 
