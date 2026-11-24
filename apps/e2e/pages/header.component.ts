@@ -5,11 +5,13 @@ export class Header {
   readonly loginLink: Locator;
   readonly cartLink: Locator;
   readonly ordersLink: Locator;
+  readonly currencyLabel: Locator;
 
   constructor(page: Page) {
     this.logOutButton = page.getByRole('button', { name: 'Log out' });
     this.loginLink = page.getByRole('link', { name: 'Log in' });
     this.cartLink = page.getByRole('link', { name: /^Cart/ });
     this.ordersLink = page.getByRole('link', { name: 'Orders' });
+    this.currencyLabel = page.getByTitle('Prices are shown and charged in this currency');
   }
 }
