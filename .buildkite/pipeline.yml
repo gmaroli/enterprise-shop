@@ -39,10 +39,12 @@ steps:
     artifact_paths:
       - 'apps/e2e/playwright-report/**/*'
       - 'apps/e2e/test-results/**/*'
+      - 'apps/e2e/playwright-results/*.json'
       - 'api.log'
     env:
       E2E_ADMIN_EMAIL: admin@shop.test
       E2E_CUSTOMER_EMAIL: customer@shop.test
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-results/api.json
     command: bash .buildkite/scripts/api-tests.sh
   - label: ':performing_arts: UI tests'
     key: ui-tests
@@ -53,9 +55,22 @@ steps:
     env:
       E2E_ADMIN_EMAIL: admin@shop.test
       E2E_CUSTOMER_EMAIL: customer@shop.test
+      PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-results/ui.json
     artifact_paths:
       - 'apps/e2e/playwright-report/**/*'
       - 'apps/e2e/test-results/**/*'
+      - 'apps/e2e/playwright-results/*.json'
       - 'api.log'
       - 'web.log'
     command: bash .buildkite/scripts/ui-tests.sh
+  - wait: ~
+    continue_on_failure: true
+
+  - label: ':slack: Test summary'
+    key: test-summary
+    if: build.branch == "main"
+    timeout_in_minutes: 5
+    command: |
+      buildkite-agent artifact download "apps/e2e/playwright-results/*.json" .
+      export SLACK_BOT_TOKEN="$(buildkite-agent secret get SLACK_BOT_TOKEN)"
+      node .buildkite/scripts/slack-summary.mjs apps/e2e/playwright-results/*.json
