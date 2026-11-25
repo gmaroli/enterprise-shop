@@ -5,6 +5,19 @@
       "command": "npx",
       "args": ["@playwright/mcp@latest", "--isolated", "--headless", "--caps=devtools"],
       "env": {}
+    },
+    "playwright-mobile": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--isolated",
+        "--headless",
+        "--caps=devtools",
+        "--device",
+        "iPhone 15"
+      ],
+      "env": {}
     }
   }
 }

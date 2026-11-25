@@ -29,7 +29,15 @@ Work through the steps in order. Do not skip ahead.
 - Confirm the Playwright browser tools are available. Note whether the video tools (`browser_start_video`, `browser_stop_video`) are available. If they are not, say in the report that no recording was made. Never describe a recording that does not exist.
 - Use only the test accounts and test data documented in the repo. Stripe stays in test mode. Never type real credentials or secrets.
 - The browser runs headless (no visible window). `.mcp.json` sets `--headless`. If a window opens, note it in the report. Do not change the setting.
-- Open one browser for the whole run. Do not start extra browsers or sessions.
+- Open one browser per device mode for the whole run (desktop, and mobile if asked). Do not start extra browsers or sessions.
+
+#### Tools
+
+Load every tool the run needs in one `ToolSearch` call before starting, so none is called without its schema. Desktop tools are named `mcp__playwright__<tool>`. Mobile tools have the same names under `mcp__playwright-mobile__`. The tools are:
+
+`browser_navigate`, `browser_snapshot`, `browser_find`, `browser_click`, `browser_type`, `browser_console_messages`, `browser_network_requests`, `browser_take_screenshot`, `browser_start_video`, `browser_video_chapter`, `browser_stop_video`, `browser_close`.
+
+If one is missing, say so in the report and do not pretend to have used it.
 
 ### 2. Plan the scenarios
 
@@ -40,14 +48,16 @@ Before touching the app, write the list of scenarios to run and keep it for the 
 
 Keep the plan small and relevant. Do not test unrelated areas.
 
+Before planning a scenario that needs particular data (for example a product with low stock, or an empty list), look for that data first with a read-only call (the API with `curl`, or the page). If no data covers the case, do not create any. Record the case as a limit in the report ("no product has a stock between 1 and 9").
+
 ### 3. Execute
 
 For each scenario:
 
-1. Start a screen recording for the main flow, if the video tools are available, and add a chapter marker per scenario.
+1. Open the first page, then start a screen recording for the main flow, if the video tools are available, and add a chapter marker per scenario. A chapter marker needs an open page, so never send it in the same step as the first navigation.
 2. Act through the page as a user would. Take a snapshot after each important step.
 3. After each important step, check the browser console messages and the network requests. Look for console errors and warnings, failed requests, status codes of 400 and above, unexpected redirects, slow or repeated calls, and responses whose content disagrees with what the page shows.
-4. When the API log or response is needed to explain a result, read it only. Do not change data to prove a theory.
+4. The browser's network list only shows calls the browser makes. This app calls its API from the server, so the list may show no API calls at all. When the API response is needed to explain a result, read it with a read-only `curl` call and say in the report that this is how it was checked. Never change data to prove a theory.
 5. Compare what happened with the expected result and record one of: **Pass**, **Fail**, **Blocked** (could not be run, with the reason) or **Not verified** (ran, but could not be checked against any rule).
 6. On any error or failed expectation, take a screenshot straight away and keep its file name for the report.
 
@@ -57,8 +67,8 @@ Stop the recording when the main flow ends. Never invent a step, a number or a m
 
 When mobile is requested, repeat the main flow and the edge cases that depend on layout (menus, forms, buttons that are hard to reach, text that is cut off or overlaps).
 
-- Preferred: a browser started as a phone, using the MCP `--device` or `--mobile` option.
-- Fallback: resize the viewport to a phone size. This only approximates a phone, so the report must say it was a resize and not a device.
+- Preferred: the `playwright-mobile` tools (`mcp__playwright-mobile__...`). That server starts a headless browser as an iPhone 15 (`--device "iPhone 15"` in `.mcp.json`). Say "iPhone 15 (emulated)" in the report.
+- Fallback, only if the `playwright-mobile` tools are not available: resize the desktop browser's viewport to a phone size. This only approximates a phone, so the report must say it was a resize and not a device.
 
 State in the report which device or size was used.
 
@@ -67,7 +77,7 @@ State in the report which device or size was used.
 When the last scenario ends, and before writing the report:
 
 1. Stop the recording if it is still running.
-2. Close the browser with `browser_close`. This closes every tab and the browser this run opened.
+2. Close the browser with `browser_close`. This closes every tab and the browser this run opened. If both desktop and mobile were used, close each one, using the `browser_close` of each server.
 3. Do this on every ending of the run, including when the run is stopped early, a scenario is Blocked, or a tool fails. Never leave a browser open for the next run.
 4. If `browser_close` fails, say so in section 9 of the report ("About this run") and tell the user a browser may still be running. Do not claim it was closed.
 
