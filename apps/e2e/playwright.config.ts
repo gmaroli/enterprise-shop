@@ -7,7 +7,11 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 export default defineConfig({
   testDir: './tests',
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: [
+    ['list'],
+    ['html', { open: 'never' }],
+    ...(process.env.PLAYWRIGHT_JSON_OUTPUT_NAME ? [['json'] as ['json']] : []),
+  ],
   use: { trace: 'retain-on-failure' },
   projects: [
     {
