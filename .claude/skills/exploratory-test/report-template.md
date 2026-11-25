@@ -77,5 +77,6 @@ Only list rows with something to say. Write "No console errors and no failed req
 ## 9. About this run
 
 - Tools used: <e.g. Playwright MCP version>
+- Browser: <headless or not, and closed at the end: yes, or no with the reason>
 - Limits: <anything that could not be checked and why, for example no recording, resize instead of device>
 - Nothing in this report was filed, pushed or published unless stated here: <state>
