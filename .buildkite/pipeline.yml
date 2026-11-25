@@ -68,7 +68,7 @@ steps:
 
   - label: ':slack: Test summary'
     key: test-summary
-    if: build.branch == "main" || build.branch == "qa/slack-test-summary"
+    if: build.branch == "main"
     timeout_in_minutes: 5
     command: |
       buildkite-agent artifact download "apps/e2e/playwright-results/*.json" .
