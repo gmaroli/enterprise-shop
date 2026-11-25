@@ -28,6 +28,8 @@ Work through the steps in order. Do not skip ahead.
 - Confirm the web app (port 3001) and the API (port 4000) respond. Do not start, stop or reset anything. If they do not respond, stop and report that.
 - Confirm the Playwright browser tools are available. Note whether the video tools (`browser_start_video`, `browser_stop_video`) are available. If they are not, say in the report that no recording was made. Never describe a recording that does not exist.
 - Use only the test accounts and test data documented in the repo. Stripe stays in test mode. Never type real credentials or secrets.
+- The browser runs headless (no visible window). `.mcp.json` sets `--headless`. If a window opens, note it in the report. Do not change the setting.
+- Open one browser for the whole run. Do not start extra browsers or sessions.
 
 ### 2. Plan the scenarios
 
@@ -60,7 +62,18 @@ When mobile is requested, repeat the main flow and the edge cases that depend on
 
 State in the report which device or size was used.
 
-### 5. Rules for the whole run
+### 5. Close the browser
+
+When the last scenario ends, and before writing the report:
+
+1. Stop the recording if it is still running.
+2. Close the browser with `browser_close`. This closes every tab and the browser this run opened.
+3. Do this on every ending of the run, including when the run is stopped early, a scenario is Blocked, or a tool fails. Never leave a browser open for the next run.
+4. If `browser_close` fails, say so in section 9 of the report ("About this run") and tell the user a browser may still be running. Do not claim it was closed.
+
+Do not kill any process outside the run. Never touch the user's own browser.
+
+### 6. Rules for the whole run
 
 - Report only what was observed. No guessing, no filling gaps, no results from memory.
 - Stay on the requested feature. A problem seen elsewhere goes in a short "Noticed elsewhere" list and is not investigated.
