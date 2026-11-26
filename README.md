@@ -244,27 +244,88 @@ The model, rules and limitations are described in [docs/warehouse.md](docs/wareh
 
 ## Scripts
 
-| Command                       | What it does                                                                                |
-| ----------------------------- | ------------------------------------------------------------------------------------------- |
-| `pnpm dev`                    | Start the web app and API with live reload                                                  |
-| `pnpm build`                  | Build everything                                                                            |
-| `pnpm lint`, `pnpm typecheck` | Static checks                                                                               |
-| `pnpm test`                   | Run the unit tests                                                                          |
-| `pnpm format`                 | Format the code with Prettier                                                               |
-| `pnpm format:check`           | Check formatting without changing files (what CI runs)                                      |
-| `pnpm db:up`, `pnpm db:down`  | Start or stop PostgreSQL                                                                    |
-| `pnpm db:migrate`             | Apply database migrations                                                                   |
-| `pnpm db:seed`                | Reset to the base data (**destructive**)                                                    |
-| `pnpm db:seed:demo`           | Add or regenerate the demo orders                                                           |
-| `pnpm db:reset`               | Drop and recreate the database from migrations, then re-run the base seed (**destructive**) |
-| `pnpm warehouse:*`            | Warehouse commands (see above)                                                              |
-| `pnpm stripe:listen`          | Forward Stripe test webhooks to the API                                                     |
+| Command                         | What it does                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `pnpm dev`                      | Start the web app and API with live reload                                                  |
+| `pnpm build`                    | Build everything                                                                            |
+| `pnpm lint`, `pnpm typecheck`   | Static checks                                                                               |
+| `pnpm test`                     | Run the unit tests                                                                          |
+| `pnpm test:api`, `pnpm test:ui` | Run the Playwright API or UI tests (the app must be running, see [Testing](#testing))       |
+| `pnpm format`                   | Format the code with Prettier                                                               |
+| `pnpm format:check`             | Check formatting without changing files (what CI runs)                                      |
+| `pnpm db:up`, `pnpm db:down`    | Start or stop PostgreSQL                                                                    |
+| `pnpm db:migrate`               | Apply database migrations                                                                   |
+| `pnpm db:seed`                  | Reset to the base data (**destructive**)                                                    |
+| `pnpm db:seed:demo`             | Add or regenerate the demo orders                                                           |
+| `pnpm db:reset`                 | Drop and recreate the database from migrations, then re-run the base seed (**destructive**) |
+| `pnpm warehouse:*`              | Warehouse commands (see above)                                                              |
+| `pnpm stripe:listen`            | Forward Stripe test webhooks to the API                                                     |
 
 ## Testing
 
-`pnpm test` runs the developer unit tests (Vitest), which sit next to the code in `packages/shared`, `apps/api` and `apps/web`. They cover business rules such as pricing, currency conversion, validation, permissions and the Stripe payment decision logic. There are no integration, API, end-to-end, performance, security or data tests in this repository; the project is meant to be tested from outside.
+This project was set up as a system built by a team with no testers, so that testing could be practised on it. The testing work is kept clearly separate from the app code. There are four layers:
 
-Useful when planning tests:
+| Layer                         | What it is                                                                                    | Where                             | Who or what runs it                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------- | --------------------------------------- |
+| Unit tests (Vitest)           | Developer tests for business rules: pricing, currency, validation, permissions, payment logic | next to the code                  | `pnpm test`, and CI on every PR         |
+| API and UI tests (Playwright) | Automated checks of the running app, through the API and through a real browser (Chromium)    | `apps/e2e`                        | `pnpm test:api`, `pnpm test:ui`, and CI |
+| Test summary in Slack         | After a build on `main`, a short message with passed and failed counts                        | `.buildkite/scripts`              | CI, automatically                       |
+| AI exploratory testing        | An AI assistant drives a browser like a user, then writes a report                            | `.claude/skills/exploratory-test` | A person, on demand                     |
+
+There are no performance, security or data tests in this repository.
+
+### Playwright API and UI tests
+
+The tests in `apps/e2e` run against the real app (nothing is mocked) and cover areas such as login, cart, pricing, orders, admin products, access control and the health check. They are written in TypeScript. Every test creates its own data. The full guide, with the commands for running one area or one test, is in [apps/e2e/README.md](apps/e2e/README.md).
+
+To run them locally, start the app (`pnpm dev`) and the database, set up `apps/e2e/.env` as described in that guide, then run `pnpm test:api` or `pnpm test:ui`.
+
+### Test summary in Slack
+
+When a build on `main` finishes, a small step reads the Playwright results and posts a message to a Slack channel. It says how many tests ran, passed and failed. For each failed test it gives the test name and the first lines of the error. The script is `.buildkite/scripts/slack-summary.mjs`. It posts through a Slack app, and the token is stored as a Buildkite secret, never in the repository.
+
+### AI exploratory testing with Playwright MCP
+
+**The idea in one paragraph.** Automated tests check the things we already know to check. Exploratory testing is a person using the app, thinking "what if I try this?", and noticing what looks wrong. Here, an AI assistant (Claude Code) does that job: it is given a feature to test, it opens the shop in a real browser, uses it like a shopper would, tries some edge cases, and writes up what it saw. A person reads the report and decides what is a real problem.
+
+**What Playwright MCP is.** MCP (Model Context Protocol) is a standard way to give an AI assistant tools. Playwright MCP is a tool set from the Playwright team that lets the assistant control a browser: open a page, click, type, read the page, take screenshots, read the console and network logs, and record a video. It is the same browser engine the Playwright tests use. The difference is that no test script is written in advance. The assistant decides each step while it looks at the page.
+
+**How it is set up here**
+
+- `.mcp.json` configures two Playwright MCP servers. One is a desktop browser. The other is `playwright-mobile`, which behaves like an iPhone 15 (an emulated phone, not a real device). Both run with no visible window (headless).
+- `.claude/skills/exploratory-test/SKILL.md` is a written set of rules (a Claude Code "skill") that the assistant follows on every run.
+- `.claude/skills/exploratory-test/report-template.md` is the report layout. Every run uses the same one.
+
+**The rules the assistant follows**
+
+- You tell it the feature or flow to test. If it is not clear, it asks instead of guessing.
+- Expected behaviour must come from a source: your description, `docs/requirements.md` or `docs/api.md`. If no source says what should happen, the result is a question, not a bug.
+- It walks the main flow the way a user would (clicking links, not jumping to internal addresses), then tries edge cases that make sense for that flow.
+- After important steps it checks the browser console and the network calls. The web app calls the API from the server, so where needed the assistant reads the API with a read-only `curl`.
+- It never changes data to prove a theory, never files issues, pushes code or publishes anything unless asked, and uses only the demo accounts from this README.
+- It records only what it actually saw. Each scenario ends as **Pass**, **Fail**, **Blocked** (could not run, with the reason) or **Not verified** (ran, but no rule to check against).
+- It closes the browser it opened at the end of every run, including when something goes wrong.
+
+**What you get.** One report per run, saved in `qa-reports/<date>-<feature>/` (this folder is git-ignored, so reports stay on the machine). The report always has the same nine sections: summary, scenarios run, findings, console and network check, questions and items not verified, noticed elsewhere, regression test ideas, evidence index and about this run. Next to it are the screen recording of the flow and screenshots of anything that looked wrong. Severity of a finding is only a suggestion for a person to confirm.
+
+**How to run it.** You need [Claude Code](https://claude.com/claude-code) opened in this repository, with the app running (`pnpm dev` and the database). Then ask, for example:
+
+> Run an exploratory test of browse and search on a phone. Keep it to 3 scenarios.
+
+or start it with the `/exploratory-test` command followed by the feature. The first time, Claude Code asks you to approve the Playwright MCP servers from `.mcp.json`.
+
+**What it has found so far.** Two small runs: one on desktop (browse, search and filter) and one on an emulated iPhone 15. They found one low-severity difference between the product page and a written rule: a product with 10 in stock shows "10 in stock" on its page, while `docs/requirements.md` (US-5) says 10 or fewer should show "Only N left". The phone run also raised two questions with no written rule behind them (the header looks cut off on a phone, and some taps did not work in the test), which were reported as questions and not as bugs.
+
+**How it fits with the other tests.** The AI is used for exploring and for first drafts of what to test next. The Playwright tests are what protect the app on every change, because they run the same way every time. The "regression test ideas" section of a report suggests checks that a person can then turn into proper Playwright tests. A person reviews every report. Nothing the AI writes is merged or published automatically, and no secrets go into prompts.
+
+**What is not built yet**
+
+- Starting a run from Slack with a command or form. A design exists on paper (a Slack form calling a small web function that starts a Buildkite build), but nothing is built.
+- Running the AI exploration in the cloud. It currently runs on the machine of the person who starts it, because it needs access to an AI model.
+- Publishing reports to Confluence. Reports are local files for now.
+- An assistant that reads failed CI runs and sorts them into product bug, test bug or environment problem.
+
+### Useful when planning tests
 
 - [docs/requirements.md](docs/requirements.md) describes intended behaviour.
 - The API is documented interactively at http://localhost:4000/api/docs.
@@ -272,13 +333,19 @@ Useful when planning tests:
 - The web app reads the `x-forwarded-for` header for country detection, and the `shop_country` cookie pins a country.
 - Payment happens on Stripe's hosted page, which is difficult to automate; many teams exercise it manually and test around it.
 
-Continuous integration (CI) runs on Buildkite for pull requests and pushes. A GitHub Actions setup is kept but paused (it only runs when started by hand). Buildkite reports three checks, so a pull request shows three short lines:
+### Continuous integration
+
+Continuous integration (CI) runs on Buildkite for pull requests and pushes. A GitHub Actions setup is kept but paused (it only runs when started by hand). Buildkite reports five checks, so a pull request shows five short lines:
 
 | Check        | What it runs                                                                         |
 | ------------ | ------------------------------------------------------------------------------------ |
 | Code quality | ESLint, Ruff (ETL), Prettier (`pnpm format:check`) and `pnpm typecheck`, in one step |
 | Build        | `pnpm build`                                                                         |
 | Unit tests   | `pnpm test`                                                                          |
+| API tests    | The Playwright API tests (`pnpm test:api`)                                           |
+| UI tests     | The Playwright UI tests in Chromium (`pnpm test:ui`)                                 |
+
+On `main` there is one more step, the Slack test summary described above.
 
 Code quality runs every check even if one fails, and lists which ones failed (in the log and as a build annotation).
 
