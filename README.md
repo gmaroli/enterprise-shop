@@ -352,7 +352,7 @@ Code quality runs every check even if one fails, and lists which ones failed (in
 - **GitHub Actions** (`.github/workflows/ci.yml`) is **paused**: it runs only when started by hand from the Actions tab. Shared setup lives in `.github/actions/setup`. See [docs/ci.md](docs/ci.md) for how to switch it back on.
 - **Buildkite** (`.buildkite/pipeline.yml`) runs on Buildkite's hosted agents. To use it you need your own Buildkite account and a pipeline connected to the repository whose first step is `buildkite-agent pipeline upload`. Shared setup lives in `.buildkite/scripts/setup.sh` and the code quality step in `.buildkite/scripts/code-quality.sh`.
 
-More detail, including how to require these checks before merging, is in [docs/ci.md](docs/ci.md).
+[docs/ci.md](docs/ci.md) has the details: how to set up Buildkite and its secrets, how to set up the Slack test summary step by step, how to require these checks before merging, and a guide to rebuilding the same pipeline on GitHub Actions or Azure DevOps (a guide only, not tested here).
 
 ## Troubleshooting
 
